@@ -14,6 +14,28 @@ import string
 
 import helpers
 
+from keras import backend as K
+
+
+def recall_m(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    recall = true_positives / (possible_positives + K.epsilon())
+    return recall
+
+
+def precision_m(y_true, y_pred):
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    return precision
+
+
+def f1_m(y_true, y_pred):
+    precision = precision_m(y_true, y_pred)
+    recall = recall_m(y_true, y_pred)
+    return 2 * ((precision * recall) / (precision + recall + K.epsilon()))
+
 
 def X1_clean_text(text, vocab):
     tokens = helpers.clean_text_to_tokens(text)
@@ -65,6 +87,29 @@ def X2_encode(text_array, max_length):
 
 def X3_encode(text_array, tokenizer, max_length):
     encoded = tokenizer.texts_to_sequences(text_array)
+    padded = pad_sequences(encoded, maxlen=max_length, padding='post')
+    return padded
+
+
+def X4_clean_text(text, vocab):
+    """dung chung clean text cua x2, tach didn't to did not"""
+    text = X2_clean_text(text, vocab)
+    array = text.split()
+    return array
+
+
+def X4_process_texts(text_array, vocab):
+    """:param text_array convert text to pos tag"""
+    tags_list = list()
+    for text in text_array:
+        tagged = nltk.pos_tag(X4_clean_text(text, vocab))
+        tags = [tagged[i][1] for i, _ in enumerate(tagged)]
+        tags_list.append(' '.join(tags))
+    return tags_list
+
+
+def X4_encode(data_array, tokenizer, max_length):
+    encoded = tokenizer.texts_to_sequences(data_array)
     padded = pad_sequences(encoded, maxlen=max_length, padding='post')
     return padded
 
@@ -153,31 +198,30 @@ def define_model(X1_vocab_size, X1_max_length, X1_embedding_matrix, X6_max_lengt
     outputs = Dense(1, activation='sigmoid')(dense2)
 
     model = Model(inputs=[X1_input, X1_2_input, X6_input], outputs=outputs)
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
 
 def train():
     for ap in aspect_category_list:
-        for polarity in ['positive', 'negative', 'neutral']:
+        for polarity in polarity_list:
             model = define_model(X1_vocab_size, X1_max_length, X1_embedding_matrix, X6_max_length)
             model.summary()
             plot_model(model, show_shapes=True, to_file='../model/' + ap + polarity + '.png')
             Y1_train = Y1_encode(ap, polarity, data_train)
             Y1_test = Y1_encode(ap, polarity, data_test)
             model.fit([X1_train, X1_train, X6_train], Y1_train, epochs=100, verbose=2)
-            _, acc = model.evaluate([X1_test, X1_test, X6_test], Y1_test, verbose=2)
-            print('%s Accuracy: %f' % (ap + polarity, acc * 100))
             model.save('../model/' + ap + '#' + polarity + 'model.h5')
 
 
 def load_model_list():
     model = []
     for ap in aspect_category_list:
-        for polarity in ['positive', 'negative', 'neutral']:
+        for polarity in polarity_list:
             model.append(
                 {'aspect_category': ap, 'polarity': polarity,
-                 'model': load_model('../model/' + ap + '#' + polarity + 'model.h5')}
+                 'model': load_model('../model/' + ap + '#' + polarity + 'model.h5',
+                                     custom_objects={'f1_m': f1_m, 'precision_m': precision_m, 'recall_m': recall_m})}
             )
     return model
 
@@ -207,8 +251,11 @@ def predict(text, model_list):
 def evaluate(model_list):
     for model in model_list:
         Y1_test = Y1_encode(model['aspect_category'], model['polarity'], data_test)
-        _, acc = model['model'].evaluate([X1_test, X1_test, X6_test], Y1_test, verbose=2)
+        _, acc, f1_score, precision, recall = model['model'].evaluate([X1_test, X1_test, X6_test], Y1_test, verbose=2)
         print('%s Accuracy: %f' % (model['aspect_category'] + '#' + model['polarity'], acc * 100))
+        print('%s F1_score: %f' % (model['aspect_category'] + '#' + model['polarity'], f1_score))
+        print('%s Precision: %f' % (model['aspect_category'] + '#' + model['polarity'], precision))
+        print('%s Recall: %f' % (model['aspect_category'] + '#' + model['polarity'], recall))
 
 
 def test_input():
@@ -229,6 +276,8 @@ test_file = '../data/official_data/EN_REST_SB1_TEST_gold.xml'
 test_csv = '../data/official_data/data_test.csv'
 vocab_file = '../data/vocab.txt'
 embedding_file = '../data/glove.6B.100d.txt'
+negative_words = '../data/negative-words.txt'
+positive_words = '../data/positive-words.txt'
 
 data_train = pd.read_csv(train_csv, sep='\t')
 data_test = pd.read_csv(test_csv, sep='\t')
@@ -252,30 +301,41 @@ X2_test_texts = X2_process_texts(data_test.text, vocab)
 X2_max_length = max([len(s.split()) for s in X2_train_texts])
 X2_train = X2_encode(X2_train_texts, X2_max_length)
 X2_test = X2_encode(X2_test_texts, X2_max_length)
-print(X2_train)
-# X3, tfidf with not, tokenizer to matrix, based on clean text from x2
-X3_train_texts = X2_train_texts
-X3_test_texts = X2_test_texts
-X3_tokenizer = create_tokenizer(X3_train_texts)
-X3_vocab_size = len(X3_tokenizer.word_index) + 1
-X3_max_length = X2_max_length
-X3_train = X3_encode(X3_train_texts, X3_tokenizer, X3_max_length)
-X3_test = X3_encode(X3_test_texts, X3_tokenizer, X3_max_length)
-print(X3_train)
+print("X2 max_length: %s" % X2_max_length)
+# X3, sequence number, based on clean text from x2
+# X3_train_texts = X2_train_texts
+# X3_test_texts = X2_test_texts
+# X3_tokenizer = create_tokenizer(X3_train_texts)
+# X3_vocab_size = len(X3_tokenizer.word_index) + 1
+# X3_max_length = X2_max_length
+# X3_train = X3_encode(X3_train_texts, X3_tokenizer, X3_max_length)
+# X3_test = X3_encode(X3_test_texts, X3_tokenizer, X3_max_length)
+# print(X3_train)
 
+# X4, pos channel,  vector 1 dimension, base on clean text x2
+X4_train_text = X4_process_texts(data_train.text, vocab)
+X4_test_text = X4_process_texts(data_test.text, vocab)
+X4_tokenizer = create_tokenizer(X4_train_text)
+X4_max_length = max([len(s.split()) for s in X4_train_text])
+X4_train = X4_encode(X4_train_text, X4_tokenizer, X4_max_length)
+X4_test = X4_encode(X4_test_text, X4_tokenizer, X4_max_length)
+
+print("X4 max_length: %s" % X4_max_length)
 # X6 merege to 2 dimension vector from x2,x3
 X6_max_length = X2_max_length
-X6_train = X6_encode(X2_train, X3_train)
-X6_test = X6_encode(X2_test, X3_test)
+X6_train = X6_encode(X2_train, X4_train)
+X6_test = X6_encode(X2_test, X4_test)
 
 # get aspect_category_list
-aspect_category_list = data_train.aspect_category.unique()
-# aspect_category_list = ['FOOD#QUALITY']
+# aspect_category_list = data_train.aspect_category.unique()
+aspect_category_list = ['FOOD#QUALITY']
+# polarity_list = ['positive','negative', 'neutral']
+polarity_list = ['positive']
 
-# train()
-# model_list = load_model_list()
-# evaluate(model_list)
-test_input()
+train()
+model_list = load_model_list()
+evaluate(model_list)
+# test_input()
 # print(X1_embedding_matrix)
 # print(X1_train)
 # print(Y1_train)

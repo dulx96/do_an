@@ -11,6 +11,8 @@ def load_doc(file):
     return text
 
 
+# clean text heplers
+
 def clean_text_to_tokens(text):
     text_lower = text.lower()
     tokens = text_lower.split()
@@ -24,6 +26,18 @@ def clean_text_to_tokens(text):
     # filter out short tokens
     tokens = [word for word in tokens if len(word) > 1]
     return tokens
+
+
+def clean_text_4(text):
+    """work token by nltk, punctuation, short word <= 1"""
+    tokens = nltk.word_tokenize(text)
+    re_punc = re.compile('[%s]' % re.escape(string.punctuation))
+    # remove punctuation from each word
+    tokens = [re_punc.sub('', w) for w in tokens]
+    # filter out short tokens
+    tokens = [word for word in tokens if len(word) > 1]
+    return tokens
+
 
 
 def convert_contracted_form_negative(tokens):
