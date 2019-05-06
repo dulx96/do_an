@@ -114,12 +114,28 @@ def X4_encode(data_array, tokenizer, max_length):
     return padded
 
 
-def X6_encode(X2, X3):
+def X5_encode(text_array, vocab_negative, vocab_positive, max_length):
+    temp = list()
+    for text in text_array:
+        init_array = [0] * max_length
+        for index, value in enumerate(text.split()):
+            if value in vocab_positive:
+                init_array[index] = 1
+            elif value in vocab_negative:
+                init_array[index] = -1
+        temp.append(init_array)
+    return np.array(temp)
+
+
+def X6_encode(X2, X4, X5):
     X2 = np.expand_dims(X2, 2)
-    X3 = np.expand_dims(X3, 2)
+    X4 = np.expand_dims(X4, 2)
+    X5 = np.expand_dims(X5, 2)
+
     print(X2.shape)
-    print(X3.shape)
-    temp = np.dstack((X2, X3))
+    print(X4.shape)
+    print(X5.shape)
+    temp = np.dstack((X2, X4, X5))
     return temp
 
 
@@ -163,7 +179,7 @@ def define_model(X1_vocab_size, X1_max_length, X1_embedding_matrix, X6_max_lengt
     # review input,w2v
     X1_input = Input(shape=(X1_max_length,))
     embedding1 = Embedding(X1_vocab_size, 100, weights=[X1_embedding_matrix])(X1_input)
-    conv1 = Conv1D(filters=32, kernel_size=2, activation='relu')(embedding1)
+    conv1 = Conv1D(filters=100, kernel_size=5, activation='relu')(embedding1)
     drop1 = Dropout(0.5)(conv1)
     pool1 = MaxPooling1D(pool_size=2)(drop1)
     flat1 = Flatten()(pool1)
@@ -172,7 +188,7 @@ def define_model(X1_vocab_size, X1_max_length, X1_embedding_matrix, X6_max_lengt
     # review input,w2v
     X1_2_input = Input(shape=(X1_max_length,))
     embedding1_2 = Embedding(X1_vocab_size, 100, weights=[X1_embedding_matrix])(X1_2_input)
-    conv1_2 = Conv1D(filters=32, kernel_size=2, activation='relu')(embedding1_2)
+    conv1_2 = Conv1D(filters=100, kernel_size=5, activation='relu')(embedding1_2)
     drop1_2 = Dropout(0.5)(conv1_2)
     pool1_2 = MaxPooling1D(pool_size=2)(drop1_2)
     flat1_2 = Flatten()(pool1_2)
@@ -184,8 +200,8 @@ def define_model(X1_vocab_size, X1_max_length, X1_embedding_matrix, X6_max_lengt
     # X2_ouput = X2_input
 
     # not and sequence 2 channel vector
-    X6_input = Input(batch_shape=(None, X6_max_length, 2))
-    X6_conv = Conv1D(filters=32, kernel_size=2, activation='relu')(X6_input)
+    X6_input = Input(batch_shape=(None, X6_max_length, 3))
+    X6_conv = Conv1D(filters=100, kernel_size=2, activation='relu')(X6_input)
     X6_drop = Dropout(0.5)(X6_conv)
     X6_pool = MaxPooling1D(pool_size=2)(X6_drop)
     X6_flat = Flatten()(X6_pool)
@@ -285,6 +301,12 @@ data_test = pd.read_csv(test_csv, sep='\t')
 vocab = helpers.load_doc(vocab_file)
 vocab = set(vocab.split())
 
+vocab_positive = helpers.load_doc(positive_words)
+vocab_positive = set(vocab_positive.split())
+
+vocab_negative = helpers.load_doc(negative_words)
+vocab_negative = set(vocab_negative.split())
+
 # X1, review w2v
 X1_train_texts = X1_process_texts(data_train.text, vocab)
 X1_test_texts = X1_process_texts(data_test.text, vocab)
@@ -320,17 +342,23 @@ X4_max_length = max([len(s.split()) for s in X4_train_text])
 X4_train = X4_encode(X4_train_text, X4_tokenizer, X4_max_length)
 X4_test = X4_encode(X4_test_text, X4_tokenizer, X4_max_length)
 
-print("X4 max_length: %s" % X4_max_length)
-# X6 merege to 2 dimension vector from x2,x3
+# X5, sentiment word, vector 1 dimension, base on clean text x2, 1 postive, -1 negative, nothing 0
+X5_train_texts = X2_train_texts
+X5_test_texts = X2_test_texts
+X5_max_length = X2_max_length
+X5_train = X5_encode(X5_train_texts, vocab_negative, vocab_positive, X5_max_length)
+X5_test = X5_encode(X5_test_texts, vocab_negative, vocab_positive, X5_max_length)
+
+# X6 merege to 2 dimension vector from x2,x4,x5
 X6_max_length = X2_max_length
-X6_train = X6_encode(X2_train, X4_train)
-X6_test = X6_encode(X2_test, X4_test)
+X6_train = X6_encode(X2_train, X4_train, X5_train)
+X6_test = X6_encode(X2_test, X4_test, X5_test)
 
 # get aspect_category_list
 # aspect_category_list = data_train.aspect_category.unique()
 aspect_category_list = ['FOOD#QUALITY']
-# polarity_list = ['positive','negative', 'neutral']
-polarity_list = ['positive']
+polarity_list = ['positive','negative', 'neutral']
+# polarity_list = ['negative']
 
 train()
 model_list = load_model_list()
