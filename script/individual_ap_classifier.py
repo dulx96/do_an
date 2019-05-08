@@ -16,6 +16,8 @@ import helpers
 
 from keras import backend as K
 
+import os
+
 
 # custom evaluation function
 def recall_m(y_true, y_pred):
@@ -186,7 +188,7 @@ def load_model_list():
     for ap in aspect_category_list:
         model.append(
             {'aspect_category': ap,
-             'model': load_model('../' + model_file_name + '/' + ap + 'model.h5',
+             'model': load_model(model_folder + '/' + model_file_name + '/' + ap + 'model.h5',
                                  custom_objects={'f1_m': f1_m, 'precision_m': precision_m, 'recall_m': recall_m})}
         )
     return model
@@ -205,6 +207,15 @@ def evaluate_model(model, aspect_category, x_dict_list, data_test):
 def evaluate_model_list(model_list, x_dict_list, data_test):
     for model in model_list:
         evaluate_model(model['model'], model['aspect_category'], x_dict_list, data_test)
+
+
+def predict_outside(text_array):
+    text_predict = [X["transform_function"](text_array) for X in X_dict_list]
+    predicted = []
+    for model in model_list:
+        y_hat = model["model"].predict(text_predict)
+        predicted.append({"ap": model["aspect_category"], "H": y_hat[0, 0] * 100})
+    return predicted
 
 
 # X1
@@ -284,6 +295,12 @@ res_embedding_file = '../data/restaurant_emb.vec'
 negative_words = '../data/negative-words.txt'
 positive_words = '../data/positive-words.txt'
 model_file_name = 'model_invidual_ap_classifier'
+model_folder = '../data/model'
+
+if not os.path.exists(model_folder):
+    os.makedirs(model_folder)
+if not os.path.exists(model_folder + '/' + model_file_name):
+    os.makedirs(model_folder + '/' + model_file_name)
 
 data_train = pd.read_csv(train_csv, sep='\t')
 data_test = pd.read_csv(test_csv, sep='\t')
@@ -305,6 +322,6 @@ aspect_category_list = data_train.aspect_category.unique()
 
 X_dict_list = prepare_X_dict(data_train, vocab)
 # X_dict_list[2]["transform_function"](data_sample.text)
-train(X_dict_list, data_train, data_test)
+# train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)

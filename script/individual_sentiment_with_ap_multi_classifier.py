@@ -278,9 +278,32 @@ def evaluate_model_list(model_list, x_dict_list, y_dict, data_test):
         evaluate_model(model['model'], model['aspect_category'], x_dict_list, y_dict, data_test)
 
 
+def predict(text_array, x_dict_list, decoder, model):
+    text_predict = [X["transform_function"](text_array) for X in x_dict_list]
+    y_hat = model.predict(text_predict)
+    return decoder(y_hat.argmax(axis=-1)), y_hat[0]
+
+
+def predict_with_ap(ap, text_array, x_dict_list, y_dict, model_list):
+    for model in model_list:
+        if model["aspect_category"] == ap:
+            return predict(text_array, x_dict_list, y_dict[ap]["decoder"], model["model"])
+
+
+def predict_input(x_dict_list, y_dict):
+    model_list = load_model_list()
+    ap = "FOOD#QUALITY"
+    while True:
+        inputText = input('nhap text: !!! \n')
+        predicted = predict_with_ap(ap, [inputText], x_dict_list, y_dict, model_list)
+        print(predicted)
+
+
+def predict_outside(text_array, ap):
+    return predict_with_ap(ap, text_array, X_dict_list, Y_dict, model_list)
+
+
 # define file
-
-
 train_file = '../data/official_data/ABSA16_Restaurants_Train_SB1_v2.xml'
 train_csv = '../data/official_data/data_train.csv'
 sample_csv = '../data/official_data/data_sample.csv'
@@ -310,12 +333,13 @@ vocab_positive = set(vocab_positive.split())
 
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
-# aspect_category_list = ['FOOD#QUALITY']
+# aspect_category_list = ['DRINKS#PRICES']
 aspect_category_list = data_train.aspect_category.unique()
 
 X_dict_list = prepare_X_dict(data_train, vocab)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 
-train(X_dict_list, Y_dict, data_train, data_test)
+# train(X_dict_list, Y_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
+# predict_input(X_dict_list, Y_dict)
