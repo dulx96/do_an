@@ -53,7 +53,7 @@ def clean_text_to_tokens(text):
 def add_doc_to_vocab(file, vocab):
     data = pd.read_csv(file, sep='\t')
     for text in data.text:
-        tokens = helpers.clean_text_to_tokens(text)
+        tokens = helpers.clean_text_to_tokens_2(text)
         vocab.update(tokens)
 
 
@@ -73,5 +73,5 @@ def gen_vocab(file_vocab, file_data):
     save_vocab(tokens, file_vocab)
 
 
-# gen_vocab(vocab_file, train_csv)
-to_csv(test_file, test_csv)
+gen_vocab(vocab_file, train_csv)
+# to_csv(test_file, test_csv)

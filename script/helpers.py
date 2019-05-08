@@ -7,13 +7,13 @@ import nltk
 stopwords = set(
     ['i', 'me', 'my', 'myself', 'we', 'our', 'ours', 'ourselves', 'you', 'your', 'yours', 'yourself', 'yourselves',
      'he', 'him', 'his', 'himself', 'she', 'her', 'hers', 'herself', 'it', 'its', 'itself', 'they', 'them', 'their',
-     'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'is', 'are', 'was',
-     'were', 'be', 'been', 'being', 'have', 'has', 'had', 'having', 'do', 'does', 'did', 'doing', 'a', 'an', 'the',
+     'theirs', 'themselves', 'what', 'which', 'who', 'whom', 'this', 'that', 'these', 'those', 'am', 'be', 'been',
+     'being', 'have', 'a', 'an', 'the',
      'and', 'but', 'if', 'or', 'because', 'as', 'until', 'while', 'of', 'at', 'by', 'for', 'with', 'about', 'against',
      'between', 'into', 'through', 'during', 'before', 'after', 'above', 'below', 'to', 'from', 'up', 'down', 'in',
      'out', 'on', 'off', 'over', 'under', 'again', 'further', 'then', 'once', 'here', 'there', 'when', 'where', 'why',
      'how', 'all', 'any', 'both', 'each', 'few', 'more', 'most', 'other', 'some', 'such', 'nor', 'only',
-     'own', 'same', 'so', 'than', 'too', 'very', 's', 't', 'can', 'will', 'just', 'don', 'should', 'now'])
+     'own', 'same', 'so', 'than', 's', 't', 'now'])
 
 
 def load_doc(file):
@@ -51,7 +51,7 @@ def clean_text_4(text):
     return tokens
 
 
-def clean_text_1(text):
+def clean_text_to_tokens_1(text):
     """:param text:string
         lower, split by white space, remove non Aplpha, remove word length <=1
      """
@@ -61,24 +61,54 @@ def clean_text_1(text):
     re_punc = re.compile('[%s]' % re.escape(string.punctuation))
     # remove punctuation from each word
     tokens = [re_punc.sub('', w) for w in tokens]
-    #stopword remove
-    tokens = [w for w in tokens if not w in stop_words]
+    # # stopword remove
+    # tokens = [w for w in tokens if not w in stopwords]
     tokens = [word for word in tokens if len(word) > 1]
+    return tokens
+
+
+def clean_text_to_tokens_2(text):
+    """
+    :param text:string
+    loweer, split by white space, remove not Alpha, remove word length <=1 , contracted not, stop_word
+    :return:
+    """
+    text_lower = text.lower()
+    tokens = text_lower.split()
+    # prepare regex for char filtering
+    re_punc = re.compile('[%s]' % re.escape(string.punctuation))
+    # remove punctuation from each word
+    tokens = [re_punc.sub('', w) for w in tokens]
+    # stopword remove
+    tokens = [w for w in tokens if not w in stopwords]
+    tokens = [word for word in tokens if len(word) > 1]
+    tokens = convert_contracted_form_negative(tokens)
     return tokens
 
 
 def convert_contracted_form_negative(tokens):
     temp = list()
-    contracted_form = ["arent", "isnt", "wasnt", "werent", "couldnt", "cant", "mustnt", "shouldnt",
-                       "wouldnt", "wont", "didnt", "doesnt", "dont", "hasnt", "havent", "hadnt"]
+    contracted_form_1 = ["arent", "isnt", "wasnt", "werent", "couldnt", "cant", "mustnt", "shouldnt",
+                         "wouldnt", "wont", "didnt", "doesnt", "dont", "hasnt", "havent", "hadnt"]
+    contracted_form_2 = ["aren't", "isn't", "wasn't", "weren't", "couldn't", "can't", "mustn't", "shouldn't",
+                         "wouldn't", "won't", "didn't", "doesn't", "don't", "hasn't", "haven't", "hadn't"]
+    contracted_form_3 = ["aren’t", "isn’t", "wasn’t", "weren’t", "couldn’t", "can’t", "mustn’t", "shouldn’t",
+                         "wouldn’t", "won’t", "didn’t", "doesn’t", "don’t", "hasn’t", "haven’t", "hadn’t"]
     for token in tokens:
-        if token not in contracted_form:
+        if token not in contracted_form_1 and token not in contracted_form_2 and token not in contracted_form_3:
             temp.append(token)
         else:
-            if token == "wont":
+            if token == "wont" or token == "won't" or token == 'won’t':
                 temp = temp + ['will', 'not']
             else:
                 x = re.findall("(.*)nt", token)
-                temp.append(x[0])
+                if len(x) >= 1:
+                    temp.append(x[0])
+                x = re.findall("(.*)n't", token)
+                if len(x) >= 1:
+                    temp.append(x[0])
+                x = re.findall("(.*)n’t", token)
+                if len(x) >= 1:
+                    temp.append(x[0])
                 temp.append('not')
     return temp

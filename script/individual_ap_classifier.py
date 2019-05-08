@@ -93,7 +93,7 @@ def prepare_X_dict(data_train, vocab):
     X2_tokenizer = create_tokenizer(X2_train_texts)
     X2_vocab_size = len(X2_tokenizer.word_index) + 1
     X2_max_length = max([len(s.split()) for s in X2_train_texts])
-    X2_embedding_matrix = get_pretrained_embedding(embedding_file, X2_tokenizer, X2_vocab_size, 100)
+    X2_embedding_matrix = get_pretrained_embedding(res_embedding_file, X2_tokenizer, X2_vocab_size, 100)
 
     def X2_transform_text_array(text_array):
         X_data = X1_process_texts(text_array, vocab)
@@ -103,6 +103,20 @@ def prepare_X_dict(data_train, vocab):
     X2_dict = {"max_length": X2_max_length, "embedding_matrix": X2_embedding_matrix, "vocab_size": X2_vocab_size,
                "transform_function": X2_transform_text_array}
     x_dict.append(X2_dict)
+
+    # X3, Noun, bag of word
+    X3_train_texts = X3_process_texts(data_train.text, vocab)
+    X3_tokenizer = create_tokenizer(X3_train_texts)
+    X3_max_length = len(X3_tokenizer.word_index) + 1
+
+    def X3_transform_text_array(text_array):
+        X_data = X3_process_texts(text_array, vocab)
+        X_data = X3_encode(X_data, X3_tokenizer)
+        return X_data
+
+    X3_dict = {"max_length": X3_max_length, "transform_function": X3_transform_text_array}
+    x_dict.append(X3_dict)
+
     return x_dict
 
 
@@ -118,32 +132,40 @@ def define_model(x_dict_list):
     X1_embedding_matrix = X1["embedding_matrix"]
     X1_input = Input(shape=(X1_max_length,))
     X1_embedding = Embedding(X1_vocab_size, 100, weights=[X1_embedding_matrix])(X1_input)
-    X1_conv = Conv1D(filters=100, kernel_size=5, activation='relu')(X1_embedding)
+    X1_conv = Conv1D(filters=100, kernel_size=2, activation='relu')(X1_embedding)
     X1_drop = Dropout(0.5)(X1_conv)
     X1_pool = MaxPooling1D(pool_size=2)(X1_drop)
     X1_flat = Flatten()(X1_pool)
     X1_output = X1_flat
 
     # X2
-    X2 = x_dict_list[0]
+    X2 = x_dict_list[1]
     X2_max_length = X2["max_length"]
     X2_vocab_size = X2["vocab_size"]
     X2_embedding_matrix = X2["embedding_matrix"]
     X2_input = Input(shape=(X2_max_length,))
     X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
-    X2_conv = Conv1D(filters=100, kernel_size=5, activation='relu')(X2_embedding)
+    X2_conv = Conv1D(filters=300, kernel_size=5, activation='relu')(X2_embedding)
     X2_drop = Dropout(0.5)(X2_conv)
     X2_pool = MaxPooling1D(pool_size=2)(X2_drop)
     X2_flat = Flatten()(X2_pool)
     X2_output = X2_flat
+    # X3
+    X3 = x_dict_list[2]
+    X3_max_length = X3["max_length"]
+    X3_input = Input(shape=(X3_max_length,))
+    X3_output = X3_input
+
     # model
-    merged = concatenate([X1_output, X2_output])
+    merged = concatenate([X1_output, X2_output, X3_output])
     dense1 = Dense(512, activation='relu')(merged)
     dense2 = Dense(10, activation='relu')(dense1)
     outputs = Dense(1, activation='sigmoid')(dense2)
-    model = Model(inputs=[X1_input, X2_input], outputs=outputs)
+    model = Model(inputs=[X1_input, X2_input, X3_input], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
+
+    # X3
 
 
 def train(x_dict_list, data_train, data_test):
@@ -188,7 +210,7 @@ def evaluate_model_list(model_list, x_dict_list, data_test):
 # X1
 # word embedding 100 dimension from glove
 def X1_clean_text(text, vocab):
-    tokens = helpers.clean_text_to_tokens(text)
+    tokens = helpers.clean_text_to_tokens_1(text)
     # filter out tokens not in vocab
     tokens = [w for w in tokens if w in vocab]
     texts = ' '.join(tokens)
@@ -206,6 +228,28 @@ def X1_encode(text_array, tokenizer, max_length):
     encoded = tokenizer.texts_to_sequences(text_array)
     padded = pad_sequences(encoded, maxlen=max_length, padding='post')
     return padded
+
+
+# X3, all Noun from text
+
+X3_clean_text = X1_clean_text
+
+
+def X3_process_texts(text_array, vocab):
+    texts_clean_list = list()
+    is_noun = lambda pos: pos[:2] == 'NN'
+    is_adj = lambda pos: pos[:2] == 'JJ'
+    for text in text_array:
+        text = X3_clean_text(text, vocab)
+        tokenized = text.split()
+        filters = [word for (word, pos) in nltk.pos_tag(tokenized) if is_noun(pos) or is_adj(pos)]
+        texts_clean_list.append(' '.join(filters))
+    return texts_clean_list
+
+
+def X3_encode(text_array, tokenizer):
+    encoded = tokenizer.texts_to_matrix(text_array)
+    return encoded
 
 
 def Y1_encode(aspect_category, data):
@@ -231,16 +275,19 @@ def Y1_encode(aspect_category, data):
 
 train_file = '../data/official_data/ABSA16_Restaurants_Train_SB1_v2.xml'
 train_csv = '../data/official_data/data_train.csv'
+sample_csv = '../data/official_data/data_sample.csv'
 test_file = '../data/official_data/EN_REST_SB1_TEST_gold.xml'
 test_csv = '../data/official_data/data_test.csv'
 vocab_file = '../data/vocab.txt'
 embedding_file = '../data/glove.6B.100d.txt'
+res_embedding_file = '../data/restaurant_emb.vec'
 negative_words = '../data/negative-words.txt'
 positive_words = '../data/positive-words.txt'
 model_file_name = 'model_invidual_ap_classifier'
 
 data_train = pd.read_csv(train_csv, sep='\t')
 data_test = pd.read_csv(test_csv, sep='\t')
+data_sample = pd.read_csv(sample_csv, sep='\t')
 
 vocab = helpers.load_doc(vocab_file)
 vocab = set(vocab.split())
@@ -253,10 +300,11 @@ vocab = set(vocab.split())
 
 
 # get aspect_category_list
-aspect_category_list = data_train.aspect_category.unique()
-# aspect_category_list = ['FOOD#QUALITY']
+# aspect_category_list = data_train.aspect_category.unique()
+aspect_category_list = ['FOOD#PRICES']
 
 X_dict_list = prepare_X_dict(data_train, vocab)
+# X_dict_list[2]["transform_function"](data_sample.text)
 train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)
