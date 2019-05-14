@@ -322,6 +322,6 @@ aspect_category_list = data_train.aspect_category.unique()
 
 X_dict_list = prepare_X_dict(data_train, vocab)
 # X_dict_list[2]["transform_function"](data_sample.text)
-# train(X_dict_list, data_train, data_test)
+train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)
