@@ -134,10 +134,10 @@ def define_model(x_dict_list):
     X1_embedding_matrix = X1["embedding_matrix"]
     X1_input = Input(shape=(X1_max_length,))
     X1_embedding = Embedding(X1_vocab_size, 100, weights=[X1_embedding_matrix])(X1_input)
-    X1_conv = Conv1D(filters=100, kernel_size=2, activation='relu')(X1_embedding)
+    X1_conv = Conv1D(filters=100, kernel_size=3, activation='relu')(X1_embedding)
     X1_drop = Dropout(0.5)(X1_conv)
-    X1_pool = MaxPooling1D(pool_size=2)(X1_drop)
-    X1_flat = Flatten()(X1_pool)
+    # X1_pool = MaxPooling1D(pool_size=2)(X1_drop)
+    X1_flat = Flatten()(X1_drop)
     X1_output = X1_flat
 
     # X2
@@ -147,10 +147,10 @@ def define_model(x_dict_list):
     X2_embedding_matrix = X2["embedding_matrix"]
     X2_input = Input(shape=(X2_max_length,))
     X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
-    X2_conv = Conv1D(filters=300, kernel_size=5, activation='relu')(X2_embedding)
+    X2_conv = Conv1D(filters=300, kernel_size=3, activation='relu')(X2_embedding)
     X2_drop = Dropout(0.5)(X2_conv)
-    X2_pool = MaxPooling1D(pool_size=2)(X2_drop)
-    X2_flat = Flatten()(X2_pool)
+    # X2_pool = MaxPooling1D(pool_size=2)(X2_drop)
+    X2_flat = Flatten()(X2_drop)
     X2_output = X2_flat
     # X3
     X3 = x_dict_list[2]
