@@ -110,8 +110,55 @@ def X3_encode(text_array, tokenizer):
     return encoded
 
 
+# X4, not, 0 1 vector
+
+X4_clean_text = X1_clean_text
+
+X4_process_texts = X1_process_texts
+
+
+def X4_encode(text_array, max_length):
+    temp = list()
+    for text in text_array:
+        init_array = [0] * max_length
+        for index, value in enumerate(text.split()):
+            if value == "not":
+                init_array[index] = -1
+        temp.append(init_array)
+    return np.array(temp)
+
+
+# X5, sentiment from dictionary
+X5_clean_text = X4_clean_text
+X5_process_texts = X4_process_texts
+
+
+def X5_encode(text_array, vocab_negative, vocab_positive, max_length):
+    temp = list()
+    for text in text_array:
+        init_array = [0] * max_length
+        for index, value in enumerate(text.split()):
+            if value in vocab_positive:
+                init_array[index] = 1
+            elif value in vocab_negative:
+                init_array[index] = -1
+        temp.append(init_array)
+    return np.array(temp)
+
+
+# X6 merge np array from other
+def X6_encode(X_array):
+    """:param X array
+    merge all same X np
+    """
+    temp = list()
+    for X in X_array:
+        temp.append(np.expand_dims(X, 2))
+    return np.dstack(temp)
+
+
 # get all input, output X,Y
-def prepare_X_dict(data_train, vocab):
+def prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive):
     """
     :param data_train - pdframe
     :param data_test - pdframe
@@ -150,7 +197,7 @@ def prepare_X_dict(data_train, vocab):
                "transform_function": X2_transform_text_array}
     x_dict.append(X2_dict)
 
-    # X3, Noun, bag of word
+    # X3, Noun, Adj bag of word
     X3_train_texts = X3_process_texts(data_train.text, vocab)
     X3_tokenizer = create_tokenizer(X3_train_texts)
     X3_max_length = len(X3_tokenizer.word_index) + 1
@@ -163,6 +210,43 @@ def prepare_X_dict(data_train, vocab):
     X3_dict = {"max_length": X3_max_length, "transform_function": X3_transform_text_array}
     x_dict.append(X3_dict)
 
+    # X4, not, 0 1 vector
+    X4_train_texts = X4_process_texts(data_train.text, vocab)
+    X4_max_length = max([len(s.split()) for s in X4_train_texts])
+
+    def X4_transform_text_array(text_array):
+        X_data = X4_process_texts(text_array, vocab)
+        X_data = X4_encode(X_data, X4_max_length)
+        return X_data
+
+    X4_dict = {"max_length": X4_max_length, "transform_function": X4_transform_text_array}
+
+    # X5, sentiment -1,1,0 vector
+    X5_train_texts = X5_process_texts(data_train.text, vocab)
+    X5_max_length = max([len(s.split()) for s in X5_train_texts])
+
+    def X5_transform_text_array(text_array):
+        X_data = X5_process_texts(text_array, vocab)
+        X_data = X5_encode(X_data, vocab_negative, vocab_positive, X5_max_length)
+        return X_data
+
+    X5_dict = {"max_length": X5_max_length, "transform_function": X5_transform_text_array}
+
+    # X6, 2 channel, not and sentiment from X4, X5
+    X6_max_length = X4_max_length
+    X6_list_dict = [X4_dict, X5_dict]
+    X6_chanels_num = len(X6_list_dict)
+
+    def X6_transform_text_array(text_array):
+        temp = list()
+        for X_dict in X6_list_dict:
+            temp.append(X_dict["transform_function"](text_array))
+        return X6_encode(temp)
+
+    X6_dict = {"chanels_num": X6_chanels_num, "max_length": X6_max_length,
+               "transform_function": X6_transform_text_array}
+
+    x_dict.append(X6_dict)
     return x_dict
 
 
@@ -224,12 +308,22 @@ def define_model(x_dict_list):
     X3_input = Input(shape=(X3_max_length,))
     X3_output = X3_input
 
+    # X6
+    X6 = x_dict_list[3]
+    X6_max_length = X6["max_length"]
+    X6_chanels_num = X6["chanels_num"]
+    X6_input = Input(batch_shape=(None, X6["max_length"], X6_chanels_num))
+    X6_conv = Conv1D(filters=100, kernel_size=3, activation='relu')(X6_input)
+    X6_drop = Dropout(0.5)(X6_conv)
+    X6_flat = Flatten()(X6_drop)
+    X6_output = X6_flat
+
     # model
-    merged = concatenate([X1_output, X2_output, X3_output])
+    merged = concatenate([X1_output, X2_output, X3_output, X6_output])
     dense1 = Dense(512, activation='relu')(merged)
     dense2 = Dense(10, activation='relu')(dense1)
     outputs = Dense(3, activation='sigmoid')(dense2)
-    model = Model(inputs=[X1_input, X2_input, X3_input], outputs=outputs)
+    model = Model(inputs=[X1_input, X2_input, X3_input, X6_input], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
@@ -336,10 +430,10 @@ vocab_negative = set(vocab_negative.split())
 # aspect_category_list = ['DRINKS#PRICES']
 aspect_category_list = data_train.aspect_category.unique()
 
-X_dict_list = prepare_X_dict(data_train, vocab)
+X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 
-# train(X_dict_list, Y_dict, data_train, data_test)
+train(X_dict_list, Y_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
-# predict_input(X_dict_list, Y_dict)
+predict_input(X_dict_list, Y_dict)
