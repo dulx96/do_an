@@ -170,17 +170,25 @@ def define_model(x_dict_list):
     # X3
 
 
+def filter_data_with_ap(ap, data):
+    ap = ap.split('#')[0]
+    temp_csv = data[data.aspect_category.str.contains(ap)].reset_index()
+    return temp_csv
+
+
 def train(x_dict_list, data_train, data_test):
     for ap in aspect_category_list:
         print(ap)
+        data_train_ap = filter_data_with_ap(ap, data_train)
+        data_test_ap = filter_data_with_ap(ap, data_test)
         model = define_model(x_dict_list)
         model.summary()
-        plot_model(model, show_shapes=True, to_file='../' + model_file_name + '/' + ap + '.png')
-        Y1_train = Y1_encode(ap, data_train)
-        X_train = [X["transform_function"](data_train.text) for X in x_dict_list]
-        model.fit(X_train, Y1_train, epochs=200, verbose=2)
-        evaluate_model(model, ap, x_dict_list, data_test)
-        model.save('../' + model_file_name + '/' + ap + 'model.h5')
+        plot_model(model, show_shapes=True, to_file=model_folder + '/' + model_file_name + '/' + ap + '.png')
+        Y1_train = Y1_encode(ap, data_train_ap)
+        X_train = [X["transform_function"](data_train_ap.text) for X in x_dict_list]
+        model.fit(X_train, Y1_train, epochs=100, verbose=2)
+        evaluate_model(model, ap, x_dict_list, data_test_ap)
+        model.save(model_folder + '/' + model_file_name + '/' + ap + 'model.h5')
 
 
 def load_model_list():
@@ -317,8 +325,8 @@ vocab = set(vocab.split())
 
 
 # get aspect_category_list
-aspect_category_list = data_train.aspect_category.unique()
-# aspect_category_list = ['FOOD#PRICES']
+# aspect_category_list = data_train.aspect_category.unique()
+aspect_category_list = ['FOOD#PRICES']
 
 X_dict_list = prepare_X_dict(data_train, vocab)
 # X_dict_list[2]["transform_function"](data_sample.text)

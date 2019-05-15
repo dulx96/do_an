@@ -68,7 +68,7 @@ def get_pretrained_embedding(file, tokenizer, vocab_size, dimensions):
 
 # word embedding 100 dimension from glove
 def X1_clean_text(text, vocab):
-    tokens = helpers.clean_text_to_tokens_2(text)
+    tokens = helpers.clean_text_to_tokens_3(text)
     # filter out tokens not in vocab
     tokens = [w for w in tokens if w in vocab]
     texts = ' '.join(tokens)
@@ -433,7 +433,7 @@ aspect_category_list = data_train.aspect_category.unique()
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 
-train(X_dict_list, Y_dict, data_train, data_test)
+# train(X_dict_list, Y_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
 predict_input(X_dict_list, Y_dict)

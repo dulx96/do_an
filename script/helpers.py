@@ -86,6 +86,24 @@ def clean_text_to_tokens_2(text):
     return tokens
 
 
+def clean_text_to_tokens_3(text):
+    """
+    :param text:string
+    split by white space , contracted not, join, split by nltk, remove not Alpha, remove word length <=1 , stop_word, stem
+    :return:
+    """
+    tokens = text.split()
+    tokens = convert_contracted_form_negative(tokens)
+    tokens = ' '.join(tokens)
+    tokens = nltk.word_tokenize(tokens)
+    porter = nltk.stem.porter.PorterStemmer()
+    tokens = [porter.stem(word) for word in tokens]
+    tokens = [word for word in tokens if word.isalpha()]
+    tokens = [w for w in tokens if not w in stopwords]
+    tokens = [word for word in tokens if len(word) > 1]
+    return tokens
+
+
 def convert_contracted_form_negative(tokens):
     temp = list()
     contracted_form_1 = ["arent", "isnt", "wasnt", "werent", "couldnt", "cant", "mustnt", "shouldnt",
