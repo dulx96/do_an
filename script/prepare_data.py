@@ -133,6 +133,6 @@ data_train = pd.read_csv(train_csv, sep='\t')
 #                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
 #                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL','LOCATION#GENERAL'], ['positive', 'negative', 'neutral'])
 
-# gen_vocab(vocab_file, train_csv)
+gen_vocab(vocab_file, train_csv)
 # to_csv(test_file, test_csv)
-gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)
+# gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)

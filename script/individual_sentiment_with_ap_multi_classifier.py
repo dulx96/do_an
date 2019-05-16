@@ -170,6 +170,7 @@ def prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive):
     X1_tokenizer = create_tokenizer(X1_train_texts)
     X1_vocab_size = len(X1_tokenizer.word_index) + 1
     X1_max_length = max([len(s.split()) for s in X1_train_texts])
+    print(X1_max_length)
     X1_embedding_matrix = get_pretrained_embedding(embedding_file, X1_tokenizer, X1_vocab_size, 100)
 
     def X1_transform_text_array(text_array):
@@ -433,7 +434,7 @@ aspect_category_list = data_train.aspect_category.unique()
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 
-# train(X_dict_list, Y_dict, data_train, data_test)
-model_list = load_model_list()
-evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
-predict_input(X_dict_list, Y_dict)
+train(X_dict_list, Y_dict, data_train, data_test)
+# model_list = load_model_list()
+# evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
+# predict_input(X_dict_list, Y_dict)
