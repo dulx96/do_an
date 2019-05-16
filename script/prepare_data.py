@@ -4,6 +4,7 @@ from collections import Counter
 import re
 import string
 from nltk.corpus import stopwords
+import nltk
 
 train_file = '../data/official_data/ABSA16_Restaurants_Train_SB1_v2.xml'
 train_csv = '../data/official_data/data_train.csv'
@@ -103,17 +104,28 @@ def gen_ap_file(data, ap_list, file):
 
 
 def gen_most_common_word_in_ap(data, ap_list, file):
+    is_noun = lambda pos: pos[:2] == 'NN'
+    is_adj = lambda pos: pos[:2] == 'JJ'
     for ap in ap_list:
-        output = file + '/' + ap + '.csv'
+        print(ap)
+        output = file + '/' + ap + '.txt'
         data_ap = filter_data_with_ap(ap, data)
-
-
+        vocab_noun = Counter()
+        vocab_adj = Counter()
+        for text in data_ap.text:
+            tokens = helpers.clean_text_to_tokens_3(text)
+            vocab_noun.update([word for (word, pos) in nltk.pos_tag(tokens) if is_noun(pos)])
+            vocab_adj.update([word for (word, pos) in nltk.pos_tag(tokens) if is_adj(pos)])
+        most_common_noun = vocab_noun.most_common(10)
+        most_common_adj = vocab_adj.most_common(5)
+        most_common_tokens = [m[0] for m in most_common_noun] + [m[0] for m in most_common_adj]
+        save_vocab(most_common_tokens, output)
 
 
 ap_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENERAL', 'RESTAURANT#PRICES',
            'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
            'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL']
-# data_train = pd.read_csv(train_csv, sep='\t')
+data_train = pd.read_csv(train_csv, sep='\t')
 # data_test = pd.read_csv(test_csv, sep='\t')
 # gen_ap_file(data_train, ap_list, ap_file_train)
 # gen_ap_file(data_test, ap_list, ap_file_test)
@@ -121,5 +133,6 @@ ap_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENE
 #                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
 #                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL','LOCATION#GENERAL'], ['positive', 'negative', 'neutral'])
 
-gen_vocab(vocab_file, train_csv)
+# gen_vocab(vocab_file, train_csv)
 # to_csv(test_file, test_csv)
+gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)
