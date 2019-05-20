@@ -155,9 +155,9 @@ def define_model(x_dict_list):
     X1_embedding_matrix = X1["embedding_matrix"]
     X1_input = Input(shape=(X1_max_length,))
     X1_embedding = Embedding(X1_vocab_size, 100, weights=[X1_embedding_matrix])(X1_input)
-    X1_conv = Conv1D(filters=100, kernel_size=3, activation='relu')(X1_embedding)
-    X1_drop = Dropout(0.5)(X1_conv)
-    # X1_pool = MaxPooling1D(pool_size=2)(X1_drop)
+    X1_conv = Conv1D(filters=100, kernel_size=2, activation='relu')(X1_embedding)
+    X1_drop = Dropout(0.23)(X1_conv)
+    X1_pool = MaxPooling1D(pool_size=2)(X1_drop)
     X1_flat = Flatten()(X1_drop)
     X1_output = X1_flat
 
@@ -168,9 +168,9 @@ def define_model(x_dict_list):
     X2_embedding_matrix = X2["embedding_matrix"]
     X2_input = Input(shape=(X2_max_length,))
     X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
-    X2_conv = Conv1D(filters=300, kernel_size=3, activation='relu')(X2_embedding)
-    X2_drop = Dropout(0.5)(X2_conv)
-    # X2_pool = MaxPooling1D(pool_size=2)(X2_drop)
+    X2_conv = Conv1D(filters=100, kernel_size=2, activation='relu')(X2_embedding)
+    X2_drop = Dropout(0.23)(X2_conv)
+    X2_pool = MaxPooling1D(pool_size=2)(X2_drop)
     X2_flat = Flatten()(X2_drop)
     X2_output = X2_flat
     # X3
@@ -189,7 +189,7 @@ def define_model(x_dict_list):
     merged = concatenate([X1_output, X2_output, X3_output, X4_output])
     dense1 = Dense(512, activation='relu')(merged)
     dense2 = Dense(10, activation='relu')(dense1)
-    outputs = Dense(1, activation='sigmoid')(dense2)
+    outputs = Dense(1, activation='softmax')(dense2)
     model = Model(inputs=[X1_input, X2_input, X3_input, X4_input], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model

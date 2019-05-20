@@ -88,7 +88,7 @@ def X1_encode(text_array, tokenizer, max_length):
     return padded
 
 
-# X3, all Noun from text
+# X3, all Noun, ADJ from text
 
 X3_clean_text = X1_clean_text
 
@@ -202,7 +202,7 @@ def prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive):
     X3_train_texts = X3_process_texts(data_train.text, vocab)
     X3_tokenizer = create_tokenizer(X3_train_texts)
     X3_max_length = len(X3_tokenizer.word_index) + 1
-
+    print(X3_max_length)
     def X3_transform_text_array(text_array):
         X_data = X3_process_texts(text_array, vocab)
         X_data = X3_encode(X_data, X3_tokenizer)
@@ -435,6 +435,6 @@ X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 
 train(X_dict_list, Y_dict, data_train, data_test)
-# model_list = load_model_list()
-# evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
-# predict_input(X_dict_list, Y_dict)
+model_list = load_model_list()
+evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
+predict_input(X_dict_list, Y_dict)
