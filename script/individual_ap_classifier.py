@@ -189,7 +189,7 @@ def define_model(x_dict_list):
     merged = concatenate([X1_output, X2_output, X3_output, X4_output])
     dense1 = Dense(512, activation='relu')(merged)
     dense2 = Dense(10, activation='relu')(dense1)
-    outputs = Dense(1, activation='softmax')(dense2)
+    outputs = Dense(1, activation='sigmoid')(dense2)
     model = Model(inputs=[X1_input, X2_input, X3_input, X4_input], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
