@@ -181,7 +181,7 @@ def define_model(x_dict_list):
     X2_embedding_matrix = X2["embedding_matrix"]
     X2_input = Input(shape=(X2_max_length,))
     X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
-    X2_conv = Conv1D(filters=10, kernel_size=2, activation='relu')(X2_embedding)
+    X2_conv = Conv1D(filters=20, kernel_size=1, activation='relu')(X2_embedding)
     X2_pool = MaxPooling1D(pool_size=2)(X2_conv)
     X2_drop = Dropout(0.25)(X2_pool)
     X2_flat = Flatten()(X2_drop)
@@ -389,7 +389,7 @@ vocab_most_common_ap_list = load_most_common_word_ap_list(ap_most_word, ap_list)
 aspect_category_list = ['RESTAURANT#PRICES', 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
                         'DRINKS#PRICES', 'RESTAURANT#PRICES', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL',
                         'DRINKS#QUALITY','FOOD#PRICES']
-#
+# aspect_category_list = ['LOCATION#GENERAL']
 X_dict_list_dict = {}
 for ap in aspect_category_list:
     X_dict_list = prepare_X_dict(data_train, vocab, vocab_most_common_ap_list[ap], ap)

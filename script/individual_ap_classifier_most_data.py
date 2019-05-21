@@ -372,6 +372,6 @@ aspect_category_list = ['FOOD#QUALITY', 'RESTAURANT#GENERAL', 'SERVICE#GENERAL',
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_most_common)
 # print(X_dict_list[3]["transform_function"](data_sample.text))
-train(X_dict_list, data_train, data_test)
+# train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)
