@@ -396,7 +396,6 @@ for ap in aspect_category_list:
     X_dict_list_dict.update({ap: X_dict_list})
 #
 # # print(X_dict_list_dict[ap][0]["transform_function"](data_sample.text))
-# train(X_dict_list_dict, data_train, data_test)
-
+train(X_dict_list_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list_dict, data_test)
