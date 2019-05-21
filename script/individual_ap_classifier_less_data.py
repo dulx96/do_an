@@ -251,9 +251,9 @@ def evaluate_model(model, aspect_category, x_dict_list, data_test):
     print('%s Recall: %f' % (aspect_category, recall * 100))
 
 
-def evaluate_model_list(model_list, x_dict_list, data_test):
+def evaluate_model_list(model_list, x_dict_list_dict, data_test):
     for model in model_list:
-        evaluate_model(model['model'], model['aspect_category'], x_dict_list, data_test)
+        evaluate_model(model['model'], model['aspect_category'], x_dict_list_dict[model['aspect_category']], data_test)
 
 
 def predict_outside(text_array):
@@ -264,70 +264,6 @@ def predict_outside(text_array):
         y_hat = model["model"].predict(text_predict)
         predicted.append({"ap": model["aspect_category"], "H": y_hat[0, 0] * 100})
     return predicted
-
-
-def predict_obj_ap_from_file(file, threshold=30):
-    """
-    get object list(text, ap_list)
-    :param file:
-    :return:
-    """
-    list_obj = []
-    sentences = ET.parse(file).getroot().findall('./Review/sentences/sentence')
-    for sentence in sentences:
-        obj = {}
-        obj['text'] = sentence.find('text').text
-        predicted = predict_outside(obj['text'])
-        ap_list = [e['ap'] for e in predicted if e['H'] >= threshold]
-        obj['ap'] = ap_list
-        list_obj.append(obj)
-    return list_obj
-
-
-def gen_obj_ap_from_xml_file(file):
-    """
-    get object list(text, ap_list)
-    :param file: xml ex file
-    :return:
-    """
-    list_obj = []
-    sentences = ET.parse(file).getroot().findall('./Review/sentences/sentence')
-    for sentence in sentences:
-        obj = {}
-        obj['text'] = sentence.find('text').text
-        Opinions = sentence.findall('./Opinions/Opinion')
-        ap_list = []
-        for Opinion in Opinions:
-            ap_list.append(Opinion.get('category'))
-        ap_list = list(dict.fromkeys(ap_list))
-        obj['ap'] = ap_list
-        list_obj.append(obj)
-    return list_obj
-
-
-def evaluate_mirco_ap(test, predicted):
-    """
-    :param test: list obj test
-    :param predicted: list obj predicted
-    :return:
-    """
-    tp = 0
-    fp = 0
-    # actually positive
-    relevant = 0
-
-    for index, sentence in enumerate(test):
-        relevant += len(sentence['ap'])
-    for index, predicted_sentence in enumerate(predicted):
-        for ap in predicted_sentence['ap']:
-            if ap in test[index]['ap']:
-                tp += 1
-            else:
-                fp += 1
-    p = tp / (tp + fp) if (tp + fp) > 0 else 0
-    r = tp / relevant
-    f1 = 2 * p * r / (p + r) if p > 0 and r > 0 else 0
-    return tp, fp, relevant, p, r, f1
 
 
 # X1
@@ -404,7 +340,7 @@ def Y1_encode(aspect_category, data):
 
 
 # define default ap_list
-ap_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENERAL', 'RESTAURANT#PRICES',
+ap_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
            'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
            'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL']
 # define file
@@ -415,7 +351,7 @@ train_csv = '../data/official_data/data_train.csv'
 sample_csv = '../data/official_data/data_sample.csv'
 test_file = '../data/official_data/EN_REST_SB1_TEST_gold.xml'
 test_csv = '../data/official_data/data_test.csv'
-vocab_file = '../data/vocab.txt'
+vocab_file = '../data/vocab_ap.txt'
 ap_most_word = '../data/official_data/aspect_category_most_common_word'
 embedding_file = '../data/glove.6B.100d.txt'
 res_embedding_file = '../data/restaurant_emb.vec'
@@ -449,8 +385,10 @@ vocab_most_common_ap_list = load_most_common_word_ap_list(ap_most_word, ap_list)
 
 # get aspect_category_list for train
 
-aspect_category_list = data_train.aspect_category.unique()
-# aspect_category_list = ['RESTAURANT#PRICES']
+# aspect_category_list = data_train.aspect_category.unique()
+aspect_category_list = ['RESTAURANT#PRICES', 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
+                        'DRINKS#PRICES', 'RESTAURANT#PRICES', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL',
+                        'DRINKS#QUALITY','FOOD#PRICES']
 #
 X_dict_list_dict = {}
 for ap in aspect_category_list:
@@ -460,8 +398,5 @@ for ap in aspect_category_list:
 # # print(X_dict_list_dict[ap][0]["transform_function"](data_sample.text))
 # train(X_dict_list_dict, data_train, data_test)
 
-
 model_list = load_model_list()
-# evaluate_model_list(model_list, X_dict_list, data_test)
-
-print(evaluate_mirco_ap(gen_obj_ap_from_xml_file(test_file), predict_obj_ap_from_file(test_file)))
+evaluate_model_list(model_list, X_dict_list_dict, data_test)

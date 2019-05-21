@@ -168,7 +168,7 @@ def define_model(x_dict_list):
     X2_embedding_matrix = X2["embedding_matrix"]
     X2_input = Input(shape=(X2_max_length,))
     X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
-    X2_conv = Conv1D(filters=200, kernel_size=2, activation='relu')(X2_embedding)
+    X2_conv = Conv1D(filters=300, kernel_size=2, activation='relu')(X2_embedding)
     X2_drop = Dropout(0.1)(X2_conv)
     X2_pool = MaxPooling1D(pool_size=2)(X2_drop)
     X2_flat = Flatten()(X2_pool)
@@ -180,7 +180,7 @@ def define_model(x_dict_list):
     X3_output = X3_input
 
     # X4
-    X4= x_dict_list[3]
+    X4 = x_dict_list[3]
     X4_max_length = X4["max_length"]
     X4_input = Input(shape=(X4_max_length,))
     X4_output = X4_input
@@ -188,12 +188,11 @@ def define_model(x_dict_list):
     # model
     merged = concatenate([X1_output, X2_output, X3_output, X4_output])
     # dense1 = Dense(512, activation='relu')(merged)
-    dense2 = Dense(10, activation='relu')(merged)
+    dense2 = Dense(100, activation='relu')(merged)
     outputs = Dense(1, activation='sigmoid')(dense2)
     model = Model(inputs=[X1_input, X2_input, X3_input, X4_input], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
-
 
 
 def filter_data_with_ap(ap, data):
@@ -337,7 +336,7 @@ train_csv = '../data/official_data/data_train.csv'
 sample_csv = '../data/official_data/data_sample.csv'
 test_file = '../data/official_data/EN_REST_SB1_TEST_gold.xml'
 test_csv = '../data/official_data/data_test.csv'
-vocab_file = '../data/vocab.txt'
+vocab_file = '../data/vocab_ap.txt'
 ap_most_word = '../data/official_data/aspect_category_most_common_word'
 embedding_file = '../data/glove.6B.100d.txt'
 res_embedding_file = '../data/restaurant_emb.vec'
@@ -369,10 +368,10 @@ vocab_most_common = load_most_common_word(ap_most_word, ap_list)
 # get aspect_category_list
 
 aspect_category_list = data_train.aspect_category.unique()
-# aspect_category_list = ['SERVICE#GENERAL']
+aspect_category_list = ['FOOD#QUALITY', 'RESTAURANT#GENERAL', 'SERVICE#GENERAL', 'AMBIENCE#GENERAL']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_most_common)
 # print(X_dict_list[3]["transform_function"](data_sample.text))
-train(X_dict_list, data_train, data_test)
+# train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)

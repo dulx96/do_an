@@ -104,12 +104,13 @@ def clean_text_to_tokens_3(text):
     split by white space , contracted not, join, split by nltk, remove not Alpha, remove word length <=1 , stop_word, stem
     :return:
     """
-    tokens = text.split()
+    text_lower = text.lower()
+    tokens = text_lower.split()
     tokens = convert_contracted_form_negative(tokens)
     tokens = ' '.join(tokens)
     tokens = nltk.word_tokenize(tokens)
     tokens = [word for word in tokens if word.isalpha()]
-    tokens = [w for w in tokens if not w in stopwords_exclude_not_no]
+    tokens = [w for w in tokens if not w in stopwords_all]
     tokens = [word for word in tokens if len(word) > 1]
     porter = nltk.stem.porter.PorterStemmer()
     tokens = [porter.stem(word) for word in tokens]

@@ -15,6 +15,7 @@ ap_file_train = '../data/official_data/aspect_category/train'
 ap_file_test = '../data/official_data/aspect_category/test'
 ap_most_word = '../data/official_data/aspect_category_most_common_word'
 ap_most_word_test = '../data/official_data/aspect_category_most_common_word_test'
+vocab_ap_file = '../data/vocab_ap.txt'
 
 import helpers
 
@@ -76,7 +77,6 @@ def gen_vocab(file_vocab, file_data):
     min_occurence = 1
     add_doc_to_vocab(file_data, vocab)
     tokens = [k for k, c in vocab.items() if c >= min_occurence]
-    print(tokens)
     save_vocab(tokens, file_vocab)
 
 
@@ -134,7 +134,7 @@ data_test = pd.read_csv(test_csv, sep='\t')
 #                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
 #                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL','LOCATION#GENERAL'], ['positive', 'negative', 'neutral'])
 
-gen_vocab(vocab_file, train_csv)
+gen_vocab(vocab_ap_file, train_csv)
 # to_csv(test_file, test_csv)
 # gen_most_common_word_in_ap(data_test, ap_list, ap_most_word_test)
-gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)
+# gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)
