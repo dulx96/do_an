@@ -108,11 +108,11 @@ def clean_text_to_tokens_3(text):
     tokens = convert_contracted_form_negative(tokens)
     tokens = ' '.join(tokens)
     tokens = nltk.word_tokenize(tokens)
+    porter = nltk.stem.porter.PorterStemmer()
+    tokens = [porter.stem(word) for word in tokens]
     tokens = [word for word in tokens if word.isalpha()]
     tokens = [w for w in tokens if not w in stopwords_all]
     tokens = [word for word in tokens if len(word) > 1]
-    porter = nltk.stem.porter.PorterStemmer()
-    tokens = [porter.stem(word) for word in tokens]
     return tokens
 
 
