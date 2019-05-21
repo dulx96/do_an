@@ -243,6 +243,8 @@ def evaluate_model_list(model_list, x_dict_list, data_test):
 
 def predict_outside(text_array):
     text_predict = [X["transform_function"](text_array) for X in X_dict_list]
+    # print(text_array)
+    # print(text_predict)
     predicted = []
     for model in model_list:
         y_hat = model["model"].predict(text_predict)
@@ -367,7 +369,7 @@ vocab_most_common = load_most_common_word(ap_most_word, ap_list)
 # get aspect_category_list
 
 aspect_category_list = data_train.aspect_category.unique()
-# aspect_category_list = ['FOOD#QUALITY']
+# aspect_category_list = ['SERVICE#GENERAL']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_most_common)
 # print(X_dict_list[3]["transform_function"](data_sample.text))
