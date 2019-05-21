@@ -14,6 +14,7 @@ vocab_file = '../data/vocab.txt'
 ap_file_train = '../data/official_data/aspect_category/train'
 ap_file_test = '../data/official_data/aspect_category/test'
 ap_most_word = '../data/official_data/aspect_category_most_common_word'
+ap_most_word_test = '../data/official_data/aspect_category_most_common_word_test'
 
 import helpers
 
@@ -126,7 +127,7 @@ ap_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENE
            'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
            'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL']
 data_train = pd.read_csv(train_csv, sep='\t')
-# data_test = pd.read_csv(test_csv, sep='\t')
+data_test = pd.read_csv(test_csv, sep='\t')
 # gen_ap_file(data_train, ap_list, ap_file_train)
 # gen_ap_file(data_test, ap_list, ap_file_test)
 # count_data(data_test13, ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENERAL', 'RESTAURANT#PRICES',
@@ -135,4 +136,5 @@ data_train = pd.read_csv(train_csv, sep='\t')
 
 gen_vocab(vocab_file, train_csv)
 # to_csv(test_file, test_csv)
-# gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)
+# gen_most_common_word_in_ap(data_test, ap_list, ap_most_word_test)
+gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)
