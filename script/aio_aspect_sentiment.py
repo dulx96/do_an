@@ -335,23 +335,25 @@ def train(x_dict_list, data_train, data_test):
             X_train = [X["transform_function"](data_train.text) for X in x_dict_list]
             model.fit(X_train, Y_train, epochs=100, verbose=2)
             evaluate_model(model, ap, polarity, x_dict_list, data_test)
-            model.save(model_folder + '/' + model_file_name + '/' + ap + 'model.h5')
+            model.save(model_folder + '/' + model_file_name + '/' + ap + polarity + 'model.h5')
 
 
 def load_model_list():
     model = []
     for ap in aspect_category_list:
-        model.append(
-            {'aspect_category': ap,
-             'model': load_model(model_folder + '/' + model_file_name + '/' + ap + 'model.h5',
-                                 custom_objects={'f1_m': f1_m, 'precision_m': precision_m, 'recall_m': recall_m})}
-        )
+        for polarity in polarity_list:
+            model.append(
+                {'aspect_category': ap,
+                 'polarity': polarity,
+                 'model': load_model(model_folder + '/' + model_file_name + '/' + ap + polarity + 'model.h5',
+                                     custom_objects={'f1_m': f1_m, 'precision_m': precision_m, 'recall_m': recall_m})}
+            )
     return model
 
 
-def evaluate_model(model, aspect_category, polarity, data_test):
+def evaluate_model(model, aspect_category, polarity, x_dict_list, data_test):
     X_test_array = [X["transform_function"](data_test.text) for X in x_dict_list]
-    Y_test = Y1_encode(aspect_category, polarity, data_testy)
+    Y_test = Y1_encode(aspect_category, polarity, data_test)
     _, acc, f1_score, precision, recall = model.evaluate(X_test_array, Y_test, verbose=2)
     print('%s Accuracy: %f' % (aspect_category, acc * 100))
     print('%s F1_score: %f' % (aspect_category, f1_score * 100))
@@ -420,15 +422,15 @@ vocab_positive = set(vocab_positive.split())
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
 
-# aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
-#                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
-#                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
-aspect_category_list = ['RESTAURANT#GENERAL']
+aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
+                        'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
+                        'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
+# aspect_category_list = ['FOOD#QUALITY']
 polarity_list = ['positive', 'negative', 'neutral']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 
 train(X_dict_list, data_train, data_test)
-# model_list = load_model_list()
-# evaluate_model_list(model_list, X_dict_list, data_test)
+model_list = load_model_list()
+evaluate_model_list(model_list, X_dict_list, data_test)
 # predict_input(X_dict_list, Y_dict)
