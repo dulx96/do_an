@@ -203,6 +203,7 @@ def prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive):
     X3_tokenizer = create_tokenizer(X3_train_texts)
     X3_max_length = len(X3_tokenizer.word_index) + 1
     print(X3_max_length)
+
     def X3_transform_text_array(text_array):
         X_data = X3_process_texts(text_array, vocab)
         X_data = X3_encode(X_data, X3_tokenizer)
@@ -376,7 +377,7 @@ def evaluate_model_list(model_list, x_dict_list, y_dict, data_test):
 def predict(text_array, x_dict_list, decoder, model):
     text_predict = [X["transform_function"](text_array) for X in x_dict_list]
     y_hat = model.predict(text_predict)
-    return decoder(y_hat.argmax(axis=-1)), y_hat[0]
+    return decoder(y_hat.argmax(axis=-1))
 
 
 def predict_with_ap(ap, text_array, x_dict_list, y_dict, model_list):
@@ -429,9 +430,9 @@ vocab_positive = set(vocab_positive.split())
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
 
-aspect_category_list = ['RESTAURANT#PRICES', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
-                        'DRINKS#PRICES', 'RESTAURANT#MISCELLANEOUS',
-                        'FOOD#PRICES']
+aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENERAL', 'RESTAURANT#PRICES',
+                        'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#STYLE_OPTIONS',
+                        'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL']
 # aspect_category_list = ['DRINKS#PRICES']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
