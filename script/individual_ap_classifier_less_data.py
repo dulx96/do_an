@@ -117,7 +117,7 @@ def prepare_X_dict(data_train, vocab, vocab_most_common, ap):
     X2_vocab_size = len(X2_tokenizer.word_index) + 1
     # X2_max_length = max([len(s.split()) for s in X2_train_texts])
     X2_max_length = 10
-    X2_embedding_matrix = get_pretrained_embedding(res_embedding_file, X2_tokenizer, X2_vocab_size, 100)
+    X2_embedding_matrix = get_pretrained_embedding(embedding_file, X2_tokenizer, X2_vocab_size, 100)
 
     def X2_transform_text_array(text_array):
         X_data = X1_process_texts(text_array, vocab)
@@ -387,8 +387,8 @@ vocab_most_common_ap_list = load_most_common_word_ap_list(ap_most_word, ap_list)
 
 # aspect_category_list = data_train.aspect_category.unique()
 aspect_category_list = ['RESTAURANT#PRICES', 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
-                        'DRINKS#PRICES', 'RESTAURANT#PRICES', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL',
-                        'DRINKS#QUALITY','FOOD#PRICES']
+                        'DRINKS#PRICES', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL',
+                        'FOOD#PRICES']
 # aspect_category_list = ['LOCATION#GENERAL']
 X_dict_list_dict = {}
 for ap in aspect_category_list:
