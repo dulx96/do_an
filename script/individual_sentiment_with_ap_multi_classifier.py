@@ -438,7 +438,7 @@ aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RE
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 
-train(X_dict_list, Y_dict, data_train, data_test)
+# train(X_dict_list, Y_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
-predict_input(X_dict_list, Y_dict)
+# predict_input(X_dict_list, Y_dict)
