@@ -261,7 +261,7 @@ def prepare_Y_dict(data_train, ap_list):
     y_dict = {}
     for ap in ap_list:
         label_encoder = LabelEncoder()
-        label_encoder.fit(data_train.polarity)
+        label_encoder.fit(['positive', 'negative', 'neutral'])
 
         def Y_encode(polarity_array):
             label_encoder.transform(polarity_array)
@@ -324,9 +324,9 @@ def define_model(x_dict_list):
     merged = concatenate([X1_output, X2_output, X3_output, X6_output])
     dense1 = Dense(512, activation='relu')(merged)
     dense2 = Dense(10, activation='relu')(dense1)
-    outputs = Dense(3, activation='sigmoid')(dense2)
+    outputs = Dense(3, activation='softmax')(dense2)
     model = Model(inputs=[X1_input, X2_input, X3_input, X6_input], outputs=outputs)
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
     # X3
@@ -343,7 +343,7 @@ def train(x_dict_list, y_dict, data_train, data_test):
         Y_train = y_dict[ap]["encoder"](data_train_ap.polarity)
         X_train = [X["transform_function"](data_train_ap.text) for X in x_dict_list]
         model.fit(X_train, Y_train, epochs=100, verbose=2)
-        # evaluate_model(model, ap, x_dict_list, data_test)
+        evaluate_model(model, ap, x_dict_list,y_dict, data_test)
         model.save(model_folder + '/' + model_file_name + '/' + ap + 'model.h5')
 
 
@@ -430,10 +430,10 @@ vocab_positive = set(vocab_positive.split())
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
 
-aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENERAL', 'RESTAURANT#PRICES',
-                        'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#STYLE_OPTIONS',
+aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
+                        'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL']
-# aspect_category_list = ['DRINKS#PRICES']
+# aspect_category_list = ['RESTAURANT#GENERAL']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
