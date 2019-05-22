@@ -111,7 +111,7 @@ def clean_text_to_tokens_3(text):
     porter = nltk.stem.porter.PorterStemmer()
     tokens = [porter.stem(word) for word in tokens]
     tokens = [word for word in tokens if word.isalpha()]
-    tokens = [w for w in tokens if not w in stopwords_all]
+    tokens = [w for w in tokens if not w in stopwords_exclude_not_no]
     tokens = [word for word in tokens if len(word) > 1]
     return tokens
 

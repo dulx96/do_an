@@ -16,7 +16,7 @@ ap_file_test = '../data/official_data/aspect_category/test'
 ap_most_word = '../data/official_data/aspect_category_most_common_word'
 ap_most_word_test = '../data/official_data/aspect_category_most_common_word_test'
 vocab_ap_file = '../data/vocab_ap.txt'
-
+vocab_sentiment_file = '../data/vocab_sentiment.txt'
 import helpers
 
 
@@ -134,7 +134,7 @@ data_test = pd.read_csv(test_csv, sep='\t')
 #                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
 #                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL','LOCATION#GENERAL'], ['positive', 'negative', 'neutral'])
 
-gen_vocab(vocab_ap_file, train_csv)
+gen_vocab(vocab_sentiment_file, train_csv)
 # to_csv(test_file, test_csv)
 # gen_most_common_word_in_ap(data_test, ap_list, ap_most_word_test)
 # gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)

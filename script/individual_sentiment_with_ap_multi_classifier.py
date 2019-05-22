@@ -313,7 +313,7 @@ def define_model(x_dict_list):
     X6 = x_dict_list[3]
     X6_max_length = X6["max_length"]
     X6_chanels_num = X6["chanels_num"]
-    X6_input = Input(batch_shape=(None, X6["max_length"], X6_chanels_num))
+    X6_input = Input(batch_shape=(None, X6_max_length, X6_chanels_num))
     X6_conv = Conv1D(filters=100, kernel_size=3, activation='relu')(X6_input)
     X6_drop = Dropout(0.5)(X6_conv)
     X6_flat = Flatten()(X6_drop)
@@ -387,7 +387,7 @@ def predict_with_ap(ap, text_array, x_dict_list, y_dict, model_list):
 
 def predict_input(x_dict_list, y_dict):
     model_list = load_model_list()
-    ap = "FOOD#QUALITY"
+    ap = "DRINKS#PRICES"
     while True:
         inputText = input('nhap text: !!! \n')
         predicted = predict_with_ap(ap, [inputText], x_dict_list, y_dict, model_list)
@@ -404,7 +404,7 @@ train_csv = '../data/official_data/data_train.csv'
 sample_csv = '../data/official_data/data_sample.csv'
 test_file = '../data/official_data/EN_REST_SB1_TEST_gold.xml'
 test_csv = '../data/official_data/data_test.csv'
-vocab_file = '../data/vocab.txt'
+vocab_file = '../data/vocab_sentiment.txt'
 embedding_file = '../data/glove.6B.100d.txt'
 res_embedding_file = '../data/restaurant_emb.vec'
 negative_words = '../data/negative-words.txt'
@@ -428,8 +428,9 @@ vocab_positive = set(vocab_positive.split())
 
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
-# aspect_category_list = ['DRINKS#PRICES']
+
 aspect_category_list = data_train.aspect_category.unique()
+# aspect_category_list = ['DRINKS#PRICES']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
@@ -437,4 +438,4 @@ Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 train(X_dict_list, Y_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
-predict_input(X_dict_list, Y_dict)
+# predict_input(X_dict_list, Y_dict)
