@@ -326,7 +326,7 @@ def define_model(x_dict_list):
     dense2 = Dense(10, activation='relu')(dense1)
     outputs = Dense(3, activation='softmax')(dense2)
     model = Model(inputs=[X1_input, X2_input, X3_input, X6_input], outputs=outputs)
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
+    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
     # X3
@@ -377,7 +377,7 @@ def evaluate_model_list(model_list, x_dict_list, y_dict, data_test):
 def predict(text_array, x_dict_list, decoder, model):
     text_predict = [X["transform_function"](text_array) for X in x_dict_list]
     y_hat = model.predict(text_predict)
-    return decoder(y_hat.argmax(axis=-1))
+    return decoder(y_hat.argmax(axis=-1)), y_hat[0]
 
 
 def predict_with_ap(ap, text_array, x_dict_list, y_dict, model_list):
@@ -433,7 +433,7 @@ vocab_negative = set(vocab_negative.split())
 aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
-# aspect_category_list = ['RESTAURANT#GENERAL']
+# aspect_category_list = ['DRINKS#PRICES']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
@@ -441,4 +441,4 @@ Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 train(X_dict_list, Y_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
-# predict_input(X_dict_list, Y_dict)
+predict_input(X_dict_list, Y_dict)

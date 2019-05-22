@@ -43,11 +43,8 @@ def predict_obj_ap_from_file(file):
         ap_sentiment_obj = {}
         for Opinion in Opinions:
             ap = Opinion.get('category')
-            if not ap == 'DRINKS#PRICES':
-                ap_sentiment_obj[ap] = 'positive'
-            else:
-                predicted = sentiment.predict_outside([obj['text']], ap)
-                ap_sentiment_obj[ap] = predicted[0]
+            predicted = sentiment.predict_outside([obj['text']], ap)
+            ap_sentiment_obj[ap] = predicted[0]
         obj['sentiment'] = ap_sentiment_obj
         list_obj.append(obj)
     return list_obj
