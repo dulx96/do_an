@@ -252,26 +252,17 @@ def prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive):
     return x_dict
 
 
-def filter_data_with_ap(ap, data):
-    temp_csv = data[data.aspect_category.str.contains(ap)].reset_index()
-    return temp_csv
-
-
-def prepare_Y_dict(data_train, ap_list):
-    y_dict = {}
-    for ap in ap_list:
-        label_encoder = LabelEncoder()
-        label_encoder.fit(['positive', 'negative', 'neutral'])
-
-        def Y_encode(polarity_array):
-            label_encoder.transform(polarity_array)
-            return to_categorical(label_encoder.transform(polarity_array))
-
-        def Y_decode(categorical_array):
-            return label_encoder.inverse_transform(categorical_array)
-
-        y_dict[ap] = {"encoder": Y_encode, "decoder": Y_decode}
-    return y_dict
+def Y1_encode(aspect_category, polarity, data):
+    y_temp = [1 if row['aspect_category'] == aspect_category and row.polarity == polarity else 0 for _, row in
+              data.iterrows()]
+    y = y_temp.copy()
+    for index, value in enumerate(y_temp):
+        if value == 1:
+            text = data.text[index]
+            for index, review in enumerate(data.text):
+                if review == text:
+                    y[index] = 1
+    return y
 
 
 # define model
@@ -315,7 +306,7 @@ def define_model(x_dict_list):
     X6_max_length = X6["max_length"]
     X6_chanels_num = X6["chanels_num"]
     X6_input = Input(batch_shape=(None, X6_max_length, X6_chanels_num))
-    X6_conv = Conv1D(filters=50, kernel_size=3, activation='relu')(X6_input)
+    X6_conv = Conv1D(filters=200, kernel_size=3, activation='relu')(X6_input)
     X6_pool = MaxPooling1D(pool_size=2)(X6_conv)
     X6_drop = Dropout(0.2)(X6_pool)
     X6_flat = Flatten()(X6_drop)
@@ -333,19 +324,19 @@ def define_model(x_dict_list):
     # X3
 
 
-def train(x_dict_list, y_dict, data_train, data_test):
+def train(x_dict_list, data_train, data_test):
     for ap in aspect_category_list:
-        print(ap)
-        data_train_ap = filter_data_with_ap(ap, data_train)
-        data_test_ap = filter_data_with_ap(ap, data_test)
-        model = define_model(x_dict_list)
-        model.summary()
-        plot_model(model, show_shapes=True, to_file=model_folder + '/' + model_file_name + '/' + ap + '.png')
-        Y_train = y_dict[ap]["encoder"](data_train_ap.polarity)
-        X_train = [X["transform_function"](data_train_ap.text) for X in x_dict_list]
-        model.fit(X_train, Y_train, epochs=100, verbose=2)
-        evaluate_model(model, ap, x_dict_list, y_dict, data_test)
-        model.save(model_folder + '/' + model_file_name + '/' + ap + 'model.h5')
+        for polarity in polarity_list:
+            print(ap + polarity)
+            model = define_model(x_dict_list)
+            model.summary()
+            plot_model(model, show_shapes=True, to_file=model_folder + '/' + model_file_name + '/' + ap + '.png')
+            Y_train = Y1_encode(ap, polarity, data_train)
+            Y_test = Y1_encode(ap, polarity, data_test)
+            X_train = [X["transform_function"](data_train.text) for X in x_dict_list]
+            model.fit(X_train, Y_train, epochs=100, verbose=2)
+            evaluate_model(model, ap, polarity, x_dict_list, data_test)
+            model.save(model_folder + '/' + model_file_name + '/' + ap + 'model.h5')
 
 
 def load_model_list():
@@ -359,10 +350,9 @@ def load_model_list():
     return model
 
 
-def evaluate_model(model, aspect_category, x_dict_list, y_dict, data_test):
-    data_test_ap = filter_data_with_ap(aspect_category, data_test)
-    Y_test = y_dict[aspect_category]["encoder"](data_test_ap.polarity)
-    X_test_array = [X["transform_function"](data_test_ap.text) for X in x_dict_list]
+def evaluate_model(model, aspect_category, polarity, data_test):
+    X_test_array = [X["transform_function"](data_test.text) for X in x_dict_list]
+    Y_test = Y1_encode(aspect_category, polarity, data_testy)
     _, acc, f1_score, precision, recall = model.evaluate(X_test_array, Y_test, verbose=2)
     print('%s Accuracy: %f' % (aspect_category, acc * 100))
     print('%s F1_score: %f' % (aspect_category, f1_score * 100))
@@ -370,9 +360,9 @@ def evaluate_model(model, aspect_category, x_dict_list, y_dict, data_test):
     print('%s Recall: %f' % (aspect_category, recall * 100))
 
 
-def evaluate_model_list(model_list, x_dict_list, y_dict, data_test):
+def evaluate_model_list(model_list, x_dict_list, data_test):
     for model in model_list:
-        evaluate_model(model['model'], model['aspect_category'], x_dict_list, y_dict, data_test)
+        evaluate_model(model['model'], model['aspect_category'], model['polarity'], x_dict_list, data_test)
 
 
 def predict(text_array, x_dict_list, decoder, model):
@@ -411,7 +401,7 @@ embedding_file = '../data/glove.6B.100d.txt'
 res_embedding_file = '../data/restaurant_emb.vec'
 negative_words = '../data/negative-words.txt'
 positive_words = '../data/positive-words.txt'
-model_file_name = 'model_invidual_sentiment_ap_classifier'
+model_file_name = 'aio_aspect_sentiment'
 model_folder = '../data/model'
 if not os.path.exists(model_folder):
     os.makedirs(model_folder)
@@ -435,11 +425,11 @@ vocab_negative = set(vocab_negative.split())
 #                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
 #                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
 aspect_category_list = ['RESTAURANT#GENERAL']
+polarity_list = ['positive', 'negative', 'neutral']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
-Y_dict = prepare_Y_dict(data_train, aspect_category_list)
 
-train(X_dict_list, Y_dict, data_train, data_test)
-model_list = load_model_list()
-evaluate_model_list(model_list, X_dict_list, Y_dict, data_test)
+train(X_dict_list, data_train, data_test)
+# model_list = load_model_list()
+# evaluate_model_list(model_list, X_dict_list, data_test)
 # predict_input(X_dict_list, Y_dict)

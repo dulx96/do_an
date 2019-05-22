@@ -38,7 +38,7 @@ def f1_m(y_true, y_pred):
 
 
 def X1_clean_text(text, vocab):
-    tokens = helpers.clean_text_to_tokens(text)
+    tokens = helpers.clean_text_to_tokens_3(text)
     # filter out tokens not in vocab
     tokens = [w for w in tokens if w in vocab]
     texts = ' '.join(tokens)
