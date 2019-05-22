@@ -377,7 +377,7 @@ def evaluate_model_list(model_list, x_dict_list, y_dict, data_test):
 def predict(text_array, x_dict_list, decoder, model):
     text_predict = [X["transform_function"](text_array) for X in x_dict_list]
     y_hat = model.predict(text_predict)
-    return decoder(y_hat.argmax(axis=-1)), y_hat[0]
+    return decoder(y_hat.argmax(axis=-1))
 
 
 def predict_with_ap(ap, text_array, x_dict_list, y_dict, model_list):
