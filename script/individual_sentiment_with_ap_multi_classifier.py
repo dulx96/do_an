@@ -429,7 +429,9 @@ vocab_positive = set(vocab_positive.split())
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
 
-aspect_category_list = data_train.aspect_category.unique()
+aspect_category_list = ['RESTAURANT#PRICES', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
+                        'DRINKS#PRICES', 'RESTAURANT#MISCELLANEOUS',
+                        'FOOD#PRICES']
 # aspect_category_list = ['DRINKS#PRICES']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
