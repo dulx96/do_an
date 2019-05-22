@@ -316,9 +316,9 @@ def define_model(x_dict_list):
     merged = concatenate([X1_output, X2_output, X6_output])
     dense1 = Dense(512, activation='relu')(merged)
     dense2 = Dense(10, activation='relu')(dense1)
-    outputs = Dense(3, activation='softmax')(dense2)
+    outputs = Dense(1, activation='sigmoid')(dense2)
     model = Model(inputs=[X1_input, X2_input, X6_input], outputs=outputs)
-    model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
     # X3
@@ -332,7 +332,6 @@ def train(x_dict_list, data_train, data_test):
             model.summary()
             plot_model(model, show_shapes=True, to_file=model_folder + '/' + model_file_name + '/' + ap + '.png')
             Y_train = Y1_encode(ap, polarity, data_train)
-            Y_test = Y1_encode(ap, polarity, data_test)
             X_train = [X["transform_function"](data_train.text) for X in x_dict_list]
             model.fit(X_train, Y_train, epochs=100, verbose=2)
             evaluate_model(model, ap, polarity, x_dict_list, data_test)

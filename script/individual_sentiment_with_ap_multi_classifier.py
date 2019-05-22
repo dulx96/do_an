@@ -299,7 +299,7 @@ def define_model(x_dict_list):
     X2_embedding_matrix = X2["embedding_matrix"]
     X2_input = Input(shape=(X2_max_length,))
     X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
-    X2_conv = Conv1D(filters=300, kernel_size=5, activation='relu')(X2_embedding)
+    X2_conv = Conv1D(filters=300, kernel_size=2, activation='relu')(X2_embedding)
     X2_pool = MaxPooling1D(pool_size=2)(X2_conv)
     X2_drop = Dropout(0.25)(X2_pool)
     X2_flat = Flatten()(X2_drop)
