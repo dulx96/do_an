@@ -153,7 +153,10 @@ def Y1_encode(aspect_category, polarity, data):
 
 
 
-
+def create_tokenizer(text_array):
+    tokenizer = Tokenizer()
+    tokenizer.fit_on_texts(text_array)
+    return tokenizer
 
 def get_pretrained_embedding(file, tokenizer, vocab_size):
     embedding_index = dict()

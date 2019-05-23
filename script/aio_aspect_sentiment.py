@@ -202,7 +202,6 @@ def prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive):
     X3_train_texts = X3_process_texts(data_train.text, vocab)
     X3_tokenizer = create_tokenizer(X3_train_texts)
     X3_max_length = len(X3_tokenizer.word_index) + 1
-    print(X3_max_length)
 
     def X3_transform_text_array(text_array):
         X_data = X3_process_texts(text_array, vocab)
