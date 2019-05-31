@@ -58,12 +58,17 @@ def clean_text_to_tokens(text):
     return tokens
 
 
-def add_doc_to_vocab(file, vocab):
+def add_doc_to_vocab_task1(file, vocab):
+    data = pd.read_csv(file, sep='\t')
+    for text in data.text:
+        tokens = helpers.clean_text_to_tokens_4(text)
+        vocab.update(tokens)
+
+def add_doc_to_vocab_task2(file, vocab):
     data = pd.read_csv(file, sep='\t')
     for text in data.text:
         tokens = helpers.clean_text_to_tokens_3(text)
         vocab.update(tokens)
-
 
 def save_vocab(tokens, file):
     data = '\n'.join(tokens)
@@ -72,13 +77,19 @@ def save_vocab(tokens, file):
     file.close()
 
 
-def gen_vocab(file_vocab, file_data):
+def gen_vocab_ap(file_vocab, file_data):
     vocab = Counter()
     min_occurence = 1
-    add_doc_to_vocab(file_data, vocab)
+    add_doc_to_vocab_task1(file_data, vocab)
     tokens = [k for k, c in vocab.items() if c >= min_occurence]
     save_vocab(tokens, file_vocab)
 
+def gen_vocab_sentiment(file_vocab, file_data):
+    vocab = Counter()
+    min_occurence = 1
+    add_doc_to_vocab_task2(file_data, vocab)
+    tokens = [k for k, c in vocab.items() if c >= min_occurence]
+    save_vocab(tokens, file_vocab)
 
 def count_data(data, ap_list, polarity_list):
     for ap in ap_list:
@@ -134,7 +145,7 @@ data_test = pd.read_csv(test_csv, sep='\t')
 #                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
 #                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL','LOCATION#GENERAL'], ['positive', 'negative', 'neutral'])
 
-gen_vocab(vocab_sentiment_file, train_csv)
+gen_vocab_ap(vocab_ap_file, train_csv)
 # to_csv(test_file, test_csv)
 # gen_most_common_word_in_ap(data_test, ap_list, ap_most_word_test)
 # gen_most_common_word_in_ap(data_train, ap_list, ap_most_word)

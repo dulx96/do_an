@@ -126,7 +126,7 @@ def prepare_X_dict(data_train, vocab, vocab_most_common, ap):
 
     X2_dict = {"max_length": X2_max_length, "embedding_matrix": X2_embedding_matrix, "vocab_size": X2_vocab_size,
                "transform_function": X2_transform_text_array}
-    x_dict.append(X2_dict)
+    # x_dict.append(X2_dict)
 
     # X3, Noun, bag of word
     X3_train_texts = X3_process_texts(data_train.text, vocab)
@@ -168,24 +168,23 @@ def define_model(x_dict_list):
     # X1_embedding_matrix = X1["embedding_matrix"]
     # X1_input = Input(shape=(X1_max_length,))
     # X1_embedding = Embedding(X1_vocab_size, 100, weights=[X1_embedding_matrix])(X1_input)
-    # X1_conv = Conv1D(filters=10, kernel_size=2, activation='relu')(X1_embedding)
+    # X1_conv = Conv1D(filters=10, kernel_size=3, activation='relu')(X1_embedding)
     # X1_pool = MaxPooling1D(pool_size=2)(X1_conv)
     # X1_drop = Dropout(0.25)(X1_pool)
     # X1_flat = Flatten()(X1_drop)
     # X1_output = X1_flat
-    #
     # X2
-    X2 = x_dict_list[0]
-    X2_max_length = X2["max_length"]
-    X2_vocab_size = X2["vocab_size"]
-    X2_embedding_matrix = X2["embedding_matrix"]
-    X2_input = Input(shape=(X2_max_length,))
-    X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
-    X2_conv = Conv1D(filters=20, kernel_size=1, activation='relu')(X2_embedding)
-    X2_pool = MaxPooling1D(pool_size=2)(X2_conv)
-    X2_drop = Dropout(0.25)(X2_pool)
-    X2_flat = Flatten()(X2_drop)
-    X2_output = X2_flat
+    # X2 = x_dict_list[1]
+    # X2_max_length = X2["max_length"]
+    # X2_vocab_size = X2["vocab_size"]
+    # X2_embedding_matrix = X2["embedding_matrix"]
+    # X2_input = Input(shape=(X2_max_length,))
+    # X2_embedding = Embedding(X2_vocab_size, 100, weights=[X2_embedding_matrix])(X2_input)
+    # X2_conv = Conv1D(filters=10, kernel_size=3, activation='relu')(X2_embedding)
+    # X2_pool = MaxPooling1D(pool_size=2)(X2_conv)
+    # X2_drop = Dropout(0.25)(X2_pool)
+    # X2_flat = Flatten()(X2_drop)
+    # X2_output = X2_flat
     # X3
     # X3 = x_dict_list[2]
     # X3_max_length = X3["max_length"]
@@ -194,18 +193,18 @@ def define_model(x_dict_list):
     # X3_output = X3_dense1
 
     # X4
-    X4 = x_dict_list[1]
+    X4 = x_dict_list[0]
     X4_max_length = X4["max_length"]
     X4_input = Input(shape=(X4_max_length,))
     X4_output = X4_input
 
     # model
-    merged = concatenate([X2_output, X4_output])
-    # merged = X4_output
+    # merged = concatenate([X1_output, X4_output])
+    merged = X4_output
     # dense1 = Dense(512, activation='relu')(merged)
     dense2 = Dense(512, activation='relu')(merged)
     outputs = Dense(1, activation='sigmoid')(dense2)
-    model = Model(inputs=[X2_input, X4_input], outputs=outputs)
+    model = Model(inputs=[X4_input], outputs=outputs)
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
@@ -386,9 +385,8 @@ vocab_most_common_ap_list = load_most_common_word_ap_list(ap_most_word, ap_list)
 # get aspect_category_list for train
 
 # aspect_category_list = data_train.aspect_category.unique()
-aspect_category_list = ['RESTAURANT#PRICES', 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
-                        'DRINKS#PRICES', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL',
-                        'FOOD#PRICES']
+aspect_category_list = [ 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
+                        'DRINKS#PRICES', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL']
 # aspect_category_list = ['LOCATION#GENERAL']
 X_dict_list_dict = {}
 for ap in aspect_category_list:
