@@ -389,7 +389,7 @@ def predict_with_ap(ap, text_array, x_dict_list, y_dict, model_list):
 
 def predict_input(x_dict_list, y_dict):
     model_list = load_model_list()
-    ap = "DRINKS#PRICES"
+    ap = "RESTAURANT#GENERAL"
     while True:
         inputText = input('nhap text: !!! \n')
         predicted = predict_with_ap(ap, [inputText], x_dict_list, y_dict, model_list)
@@ -430,9 +430,14 @@ vocab_positive = set(vocab_positive.split())
 
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
+# define default ap_list
+ap_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENERAL', 'RESTAURANT#PRICES',
+           'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
+           'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL']
 
-aspect_category_list = ['FOOD#QUALITY', 'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
-# aspect_category_list = ['RESTAURANT#GENERAL']
+# aspect_category_list = ['FOOD#QUALITY', 'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
+# aspect_category_list = ['SERVICE#GENERAL']
+aspect_category_list = ap_list
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)

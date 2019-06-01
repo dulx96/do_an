@@ -385,8 +385,7 @@ vocab_most_common_ap_list = load_most_common_word_ap_list(ap_most_word, ap_list)
 # get aspect_category_list for train
 
 # aspect_category_list = data_train.aspect_category.unique()
-aspect_category_list = [ 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS',
-                        'DRINKS#PRICES', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL']
+aspect_category_list = [ 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL']
 # aspect_category_list = ['LOCATION#GENERAL']
 X_dict_list_dict = {}
 for ap in aspect_category_list:
