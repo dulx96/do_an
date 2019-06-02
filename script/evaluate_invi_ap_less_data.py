@@ -55,6 +55,9 @@ def evaluate_mirco_ap(test, predicted):
     for index, sentence in enumerate(test):
         relevant += len(sentence['ap'])
     for index, predicted_sentence in enumerate(predicted):
+        print(test[index]['text'])
+        print(test[index]['ap'])
+        print(predicted_sentence['ap'])
         for ap in predicted_sentence['ap']:
             if ap in test[index]['ap']:
                 tp += 1

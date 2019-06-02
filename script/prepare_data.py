@@ -145,7 +145,7 @@ data_test = pd.read_csv(test_csv, sep='\t')
 #                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
 #                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL','LOCATION#GENERAL'], ['positive', 'negative', 'neutral'])
 
-# gen_vocab_ap(vocab_ap_file, train_csv)
+gen_vocab_ap(vocab_ap_file, train_csv)
 gen_vocab_sentiment(vocab_sentiment_file, train_csv)
 # to_csv(test_file, test_csv)
 # gen_most_common_word_in_ap(data_test, ap_list, ap_most_word_test)
