@@ -365,29 +365,22 @@ def evaluate_model_list(model_list, x_dict_list, data_test):
         evaluate_model(model['model'], model['aspect_category'], model['polarity'], x_dict_list, data_test)
 
 
-def predict(text_array, x_dict_list, decoder, model):
+def predict(text_array, x_dict_list, model_list):
+    result = []
     text_predict = [X["transform_function"](text_array) for X in x_dict_list]
-    y_hat = model.predict(text_predict)
-    return decoder(y_hat.argmax(axis=-1))
-
-
-def predict_with_ap(ap, text_array, x_dict_list, y_dict, model_list):
     for model in model_list:
-        if model["aspect_category"] == ap:
-            return predict(text_array, x_dict_list, y_dict[ap]["decoder"], model["model"])
+        y_hat = model['model'].predict(text_predict)
+        percent_tag = y_hat[0, 0]
+        if round(percent_tag * 100) < 50:
+            print(model['aspect_category'], '#', model['polarity'], percent_tag * 100)
+            continue
+        print(model['aspect_category'], '#', model['polarity'], percent_tag * 100)
+        result.append(model['aspect_category'] + model['polarity'])
+    return result
 
 
-def predict_input(x_dict_list, y_dict):
-    model_list = load_model_list()
-    ap = "DRINKS#PRICES"
-    while True:
-        inputText = input('nhap text: !!! \n')
-        predicted = predict_with_ap(ap, [inputText], x_dict_list, y_dict, model_list)
-        print(predicted)
-
-
-def predict_outside(text_array, ap):
-    return predict_with_ap(ap, text_array, X_dict_list, Y_dict, model_list)
+def predict_outside(text_array):
+    return predict(text_array, X_dict_list, model_list)
 
 
 # define file
@@ -421,15 +414,15 @@ vocab_positive = set(vocab_positive.split())
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
 
-aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
-                        'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
-                        'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
-# aspect_category_list = ['FOOD#QUALITY']
+# aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
+#                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
+#                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
+aspect_category_list = ['FOOD#QUALITY']
 polarity_list = ['positive', 'negative', 'neutral']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 
-train(X_dict_list, data_train, data_test)
+# train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)
 # predict_input(X_dict_list, Y_dict)

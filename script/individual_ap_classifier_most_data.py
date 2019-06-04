@@ -370,11 +370,11 @@ vocab_most_common = load_most_common_word(ap_most_word, ap_list)
 # aspect_category_list = data_train.aspect_category.unique()
 aspect_category_list = ['RESTAURANT#PRICES','FOOD#QUALITY', 'RESTAURANT#GENERAL', 'SERVICE#GENERAL', 'AMBIENCE#GENERAL',
                         'FOOD#PRICES', 'DRINKS#PRICES']
-# aspect_category_list = ['SERVICE#GENERAL']
+# aspect_category_list = ['FOOD#PRICES']
 # aspect_category_list = ap_list
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_most_common)
 # print(X_dict_list[3]["transform_function"](data_sample.text))
-train(X_dict_list, data_train, data_test)
+# train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)
