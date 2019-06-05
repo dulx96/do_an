@@ -435,9 +435,8 @@ ap_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#GENE
            'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
            'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL']
 
-aspect_category_list = ['FOOD#QUALITY', 'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
 # aspect_category_list = ['FOOD#QUALITY']
-# aspect_category_list = ap_list
+aspect_category_list = ap_list
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 Y_dict = prepare_Y_dict(data_train, aspect_category_list)
