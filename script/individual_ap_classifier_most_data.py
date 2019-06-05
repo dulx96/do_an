@@ -187,11 +187,11 @@ def define_model(x_dict_list):
 
     # model
     merged = concatenate([X1_output, X2_output, X3_output])
-    dense1 = Dense(512, activation='relu')(merged)
-    dense2 = Dense(10, activation='relu')(dense1)
+    dense1 = Dense(512, activation='elu')(merged)
+    dense2 = Dense(10, activation='elu')(dense1)
     outputs = Dense(1, activation='sigmoid')(dense2)
     model = Model(inputs=[X1_input, X2_input, X3_input], outputs=outputs)
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
+    model.compile(loss='binary_crossentropy', optimizer='adagrad', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
 
@@ -209,7 +209,7 @@ def train(x_dict_list, data_train, data_test):
         plot_model(model, show_shapes=True, to_file=model_folder + '/' + model_file_name + '/' + ap + '.png')
         Y1_train = Y1_encode(ap, data_train)
         X_train = [X["transform_function"](data_train.text) for X in x_dict_list]
-        model.fit(X_train, Y1_train, epochs=20, verbose=2)
+        model.fit(X_train, Y1_train, epochs=100, verbose=2)
         evaluate_model(model, ap, x_dict_list, data_test)
         model.save(model_folder + '/' + model_file_name + '/' + ap + 'model.h5')
 
@@ -368,13 +368,12 @@ vocab_most_common = load_most_common_word(ap_most_word, ap_list)
 # get aspect_category_list
 
 # aspect_category_list = data_train.aspect_category.unique()
-aspect_category_list = ['RESTAURANT#PRICES','FOOD#QUALITY', 'RESTAURANT#GENERAL', 'SERVICE#GENERAL', 'AMBIENCE#GENERAL',
-                        'FOOD#PRICES', 'DRINKS#PRICES']
-# aspect_category_list = ['FOOD#PRICES']
+aspect_category_list = ['FOOD#QUALITY', 'RESTAURANT#GENERAL', 'SERVICE#GENERAL', 'AMBIENCE#GENERAL']
+# aspect_category_list = ['FOOD#QUALITY']
 # aspect_category_list = ap_list
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_most_common)
 # print(X_dict_list[3]["transform_function"](data_sample.text))
-# train(X_dict_list, data_train, data_test)
+train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)

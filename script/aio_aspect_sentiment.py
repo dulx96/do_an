@@ -313,11 +313,11 @@ def define_model(x_dict_list):
 
     # model
     merged = concatenate([X1_output, X2_output, X6_output])
-    dense1 = Dense(512, activation='relu')(merged)
-    dense2 = Dense(10, activation='relu')(dense1)
+    dense1 = Dense(512, activation='elu')(merged)
+    dense2 = Dense(10, activation='elu')(dense1)
     outputs = Dense(1, activation='sigmoid')(dense2)
     model = Model(inputs=[X1_input, X2_input, X6_input], outputs=outputs)
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
+    model.compile(loss='binary_crossentropy', optimizer='adagrad', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
     # X3
@@ -414,15 +414,13 @@ vocab_positive = set(vocab_positive.split())
 vocab_negative = helpers.load_doc(negative_words)
 vocab_negative = set(vocab_negative.split())
 
-# aspect_category_list = ['FOOD#QUALITY', 'FOOD#PRICES', 'FOOD#STYLE_OPTIONS', 'RESTAURANT#PRICES',
-#                         'RESTAURANT#MISCELLANEOUS', 'DRINKS#PRICES', 'DRINKS#QUALITY', 'DRINKS#STYLE_OPTIONS',
-#                         'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'LOCATION#GENERAL', 'RESTAURANT#GENERAL']
-aspect_category_list = ['FOOD#QUALITY']
+aspect_category_list = ['FOOD#QUALITY', 'AMBIENCE#GENERAL', 'SERVICE#GENERAL', 'RESTAURANT#GENERAL']
+# aspect_category_list = ['FOOD#QUALITY']
 polarity_list = ['positive', 'negative', 'neutral']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 
-# train(X_dict_list, data_train, data_test)
+train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)
 # predict_input(X_dict_list, Y_dict)

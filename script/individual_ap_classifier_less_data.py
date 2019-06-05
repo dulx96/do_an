@@ -203,10 +203,10 @@ def define_model(x_dict_list):
     merged = concatenate([X2_output, X4_output])
     # merged = X4_output
     # dense1 = Dense(512, activation='relu')(merged)
-    dense2 = Dense(10, activation='relu')(merged)
+    dense2 = Dense(10, activation='elu')(merged)
     outputs = Dense(1, activation='sigmoid')(dense2)
     model = Model(inputs=[X2_input, X4_input], outputs=outputs)
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', f1_m, precision_m, recall_m])
+    model.compile(loss='binary_crossentropy', optimizer='adagrad', metrics=['accuracy', f1_m, precision_m, recall_m])
     return model
 
 
@@ -375,8 +375,9 @@ vocab = set(vocab.split())
 # get aspect_category_list for train
 
 # aspect_category_list = data_train.aspect_category.unique()
-aspect_category_list = ['DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS', 'DRINKS#STYLE_OPTIONS', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL']
-# aspect_category_list = ['LOCATION#GENERAL']
+aspect_category_list = ['FOOD#PRICES', 'RESTAURANT#PRICES', 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS',
+                        'DRINKS#STYLE_OPTIONS', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL', 'DRINKS#PRICES']
+# aspect_category_list = ['RESTAURANT#PRICES']
 vocab_most_common_ap_list = load_most_common_word_ap_list(ap_most_word_path, aspect_category_list)
 X_dict_list_dict = {}
 for ap in aspect_category_list:
@@ -384,6 +385,6 @@ for ap in aspect_category_list:
     X_dict_list_dict.update({ap: X_dict_list})
 #
 # # print(X_dict_list_dict[ap][0]["transform_function"](data_sample.text))
-# train(X_dict_list_dict, data_train, data_test)
+train(X_dict_list_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list_dict, data_test)
