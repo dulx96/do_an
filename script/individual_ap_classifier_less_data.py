@@ -225,7 +225,7 @@ def train(x_dict_list_dict, data_train, data_test):
         plot_model(model, show_shapes=True, to_file=model_folder + '/' + model_file_name + '/' + ap + '.png')
         Y1_train = Y1_encode(ap, data_train)
         X_train = [X["transform_function"](data_train.text) for X in x_dict_list]
-        model.fit(X_train, Y1_train, epochs=100, verbose=2)
+        model.fit(X_train, Y1_train, epochs=100)
         evaluate_model(model, ap, x_dict_list, data_test)
         model.save(model_folder + '/' + model_file_name + '/' + ap + 'model.h5')
 
@@ -244,7 +244,7 @@ def load_model_list():
 def evaluate_model(model, aspect_category, x_dict_list, data_test):
     Y1_test = Y1_encode(aspect_category, data_test)
     X_test_array = [X["transform_function"](data_test.text) for X in x_dict_list]
-    _, acc, f1_score, precision, recall = model.evaluate(X_test_array, Y1_test, verbose=2)
+    _, acc, f1_score, precision, recall = model.evaluate(X_test_array, Y1_test)
     print('%s Accuracy: %f' % (aspect_category, acc * 100))
     print('%s F1_score: %f' % (aspect_category, f1_score * 100))
     print('%s Precision: %f' % (aspect_category, precision * 100))
@@ -377,7 +377,7 @@ vocab = set(vocab.split())
 # aspect_category_list = data_train.aspect_category.unique()
 aspect_category_list = ['FOOD#PRICES', 'RESTAURANT#PRICES', 'DRINKS#QUALITY', 'FOOD#STYLE_OPTIONS',
                         'DRINKS#STYLE_OPTIONS', 'RESTAURANT#MISCELLANEOUS', 'LOCATION#GENERAL', 'DRINKS#PRICES']
-# aspect_category_list = ['RESTAURANT#PRICES']
+# aspect_category_list = ['LOCATION#GENERAL']
 vocab_most_common_ap_list = load_most_common_word_ap_list(ap_most_word_path, aspect_category_list)
 X_dict_list_dict = {}
 for ap in aspect_category_list:
@@ -385,6 +385,6 @@ for ap in aspect_category_list:
     X_dict_list_dict.update({ap: X_dict_list})
 #
 # # print(X_dict_list_dict[ap][0]["transform_function"](data_sample.text))
-train(X_dict_list_dict, data_train, data_test)
+# train(X_dict_list_dict, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list_dict, data_test)

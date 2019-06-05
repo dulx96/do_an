@@ -420,7 +420,7 @@ polarity_list = ['positive', 'negative', 'neutral']
 
 X_dict_list = prepare_X_dict(data_train, vocab, vocab_negative, vocab_positive)
 
-train(X_dict_list, data_train, data_test)
+# train(X_dict_list, data_train, data_test)
 model_list = load_model_list()
 evaluate_model_list(model_list, X_dict_list, data_test)
 # predict_input(X_dict_list, Y_dict)
